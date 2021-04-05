@@ -45,15 +45,20 @@ namespace csbattleship
             this.labelPort = new System.Windows.Forms.Label();
             this.textBoxPort = new System.Windows.Forms.TextBox();
             this.textBoxHost = new System.Windows.Forms.TextBox();
+            this.tableLayoutPanelButtons = new System.Windows.Forms.TableLayoutPanel();
+            this.buttonClear = new System.Windows.Forms.Button();
             this.tableLayoutPanelLower.SuspendLayout();
             this.tableLayoutPanelChat.SuspendLayout();
             this.tableLayoutPanelMessage.SuspendLayout();
             this.tableLayoutPaneBase.SuspendLayout();
             this.tableLayoutPanelUpper.SuspendLayout();
+            this.tableLayoutPanelButtons.SuspendLayout();
             this.SuspendLayout();
             // 
             // tableLayoutPanelLower
             // 
+            this.tableLayoutPanelLower.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.tableLayoutPanelLower.AutoSize = true;
             this.tableLayoutPanelLower.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.tableLayoutPanelLower.CellBorderStyle = System.Windows.Forms.TableLayoutPanelCellBorderStyle.InsetDouble;
             this.tableLayoutPanelLower.ColumnCount = 3;
@@ -136,6 +141,7 @@ namespace csbattleship
             this.listBoxChat.Margin = new System.Windows.Forms.Padding(0);
             this.listBoxChat.Name = "listBoxChat";
             this.listBoxChat.ScrollAlwaysVisible = true;
+            this.listBoxChat.SelectionMode = System.Windows.Forms.SelectionMode.None;
             this.listBoxChat.Size = new System.Drawing.Size(186, 321);
             this.listBoxChat.TabIndex = 0;
             // 
@@ -169,7 +175,6 @@ namespace csbattleship
             // buttonSend
             // 
             this.buttonSend.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.buttonSend.AutoEllipsis = true;
             this.buttonSend.AutoSize = true;
             this.buttonSend.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.buttonSend.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -180,7 +185,7 @@ namespace csbattleship
             this.buttonSend.Size = new System.Drawing.Size(32, 32);
             this.buttonSend.TabIndex = 4;
             this.buttonSend.UseVisualStyleBackColor = true;
-            this.buttonSend.Click += new System.EventHandler(this.buttonSend_Click);
+            this.buttonSend.Click += new System.EventHandler(this.ButtonSend_Click);
             // 
             // tableLayoutPanelLeft
             // 
@@ -223,12 +228,12 @@ namespace csbattleship
             this.buttonStart.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.buttonStart.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.buttonStart.ForeColor = System.Drawing.Color.Black;
-            this.buttonStart.Location = new System.Drawing.Point(585, 38);
+            this.buttonStart.Location = new System.Drawing.Point(10, 0);
             this.buttonStart.Margin = new System.Windows.Forms.Padding(0);
             this.buttonStart.Name = "buttonStart";
-            this.buttonStart.Size = new System.Drawing.Size(100, 27);
+            this.buttonStart.Size = new System.Drawing.Size(75, 27);
             this.buttonStart.TabIndex = 5;
-            this.buttonStart.Text = "        Старт        ";
+            this.buttonStart.Text = "    В бой    ";
             this.buttonStart.UseVisualStyleBackColor = false;
             this.buttonStart.Click += new System.EventHandler(this.StartGame);
             // 
@@ -252,17 +257,18 @@ namespace csbattleship
             this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 15F));
             this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 15F));
             this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 70F));
-            this.tableLayoutPanelUpper.Controls.Add(this.buttonStart, 2, 1);
             this.tableLayoutPanelUpper.Controls.Add(this.labelHost, 0, 0);
             this.tableLayoutPanelUpper.Controls.Add(this.labelPort, 1, 0);
             this.tableLayoutPanelUpper.Controls.Add(this.textBoxPort, 1, 1);
             this.tableLayoutPanelUpper.Controls.Add(this.textBoxHost, 0, 1);
+            this.tableLayoutPanelUpper.Controls.Add(this.tableLayoutPanelButtons, 2, 1);
             this.tableLayoutPanelUpper.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanelUpper.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanelUpper.Name = "tableLayoutPanelUpper";
             this.tableLayoutPanelUpper.RowCount = 2;
             this.tableLayoutPanelUpper.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanelUpper.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanelUpper.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanelUpper.Size = new System.Drawing.Size(978, 69);
             this.tableLayoutPanelUpper.TabIndex = 1;
             // 
@@ -324,6 +330,40 @@ namespace csbattleship
             this.textBoxHost.TabIndex = 0;
             this.textBoxHost.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
+            // tableLayoutPanelButtons
+            // 
+            this.tableLayoutPanelButtons.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.tableLayoutPanelButtons.AutoSize = true;
+            this.tableLayoutPanelButtons.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.tableLayoutPanelButtons.ColumnCount = 2;
+            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanelButtons.Controls.Add(this.buttonStart, 0, 0);
+            this.tableLayoutPanelButtons.Controls.Add(this.buttonClear, 1, 0);
+            this.tableLayoutPanelButtons.Location = new System.Drawing.Point(540, 38);
+            this.tableLayoutPanelButtons.Name = "tableLayoutPanelButtons";
+            this.tableLayoutPanelButtons.RowCount = 1;
+            this.tableLayoutPanelButtons.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelButtons.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanelButtons.Size = new System.Drawing.Size(190, 27);
+            this.tableLayoutPanelButtons.TabIndex = 6;
+            // 
+            // buttonClear
+            // 
+            this.buttonClear.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.buttonClear.AutoSize = true;
+            this.buttonClear.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.buttonClear.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonClear.ForeColor = System.Drawing.Color.Black;
+            this.buttonClear.Location = new System.Drawing.Point(95, 0);
+            this.buttonClear.Margin = new System.Windows.Forms.Padding(0);
+            this.buttonClear.Name = "buttonClear";
+            this.buttonClear.Size = new System.Drawing.Size(95, 27);
+            this.buttonClear.TabIndex = 6;
+            this.buttonClear.Text = "    Очистить    ";
+            this.buttonClear.UseVisualStyleBackColor = false;
+            this.buttonClear.Click += new System.EventHandler(this.ButtonClear_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
@@ -344,8 +384,11 @@ namespace csbattleship
             this.tableLayoutPanelMessage.ResumeLayout(false);
             this.tableLayoutPanelMessage.PerformLayout();
             this.tableLayoutPaneBase.ResumeLayout(false);
+            this.tableLayoutPaneBase.PerformLayout();
             this.tableLayoutPanelUpper.ResumeLayout(false);
             this.tableLayoutPanelUpper.PerformLayout();
+            this.tableLayoutPanelButtons.ResumeLayout(false);
+            this.tableLayoutPanelButtons.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -367,6 +410,8 @@ namespace csbattleship
         private System.Windows.Forms.TextBox textBoxHost;
         private System.Windows.Forms.TextBox textBoxPort;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelMessage;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanelButtons;
+        private System.Windows.Forms.Button buttonClear;
     }
 }
 
