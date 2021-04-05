@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net;
 
 namespace csbattleship
 {
@@ -17,6 +18,9 @@ namespace csbattleship
         public string host = "";
         public string port = "";
 
+        public Button[,] leftCellMassive = new Button[10, 10];
+        public Button[,] rigthCellMassive = new Button[10, 10];
+
         public MainForm()
         {
             InitializeComponent();
@@ -24,51 +28,104 @@ namespace csbattleship
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            MapCleaning();
+        }
+
+        private void StartGame(object sender, EventArgs e)
+        {
+            if (Validvalidation())
+            {
+                if (host != textBoxHost.Text || port != textBoxPort.Text)
+                {
+                    host = textBoxHost.Text;
+                    port = textBoxPort.Text;
+
+                    listBoxChat.Items.Add($"Подключение к: {host}:{port}");
+                }
+            }
+            else
+            {
+                listBoxChat.Items.Add("Не верный IP адресс!");
+            }
+        }
+
+        private bool Validvalidation()
+        {
+            IPAddress ip;
+            IPAddress.TryParse(textBoxHost.Text, out ip);
+
+            if (textBoxPort.Text == "" || ip == null)
+                return false;
+
+            return true;
+        }
+
+        private void MapCleaning()
+        {
             tableLayoutPanelLeft.BackColor = sea_color;
             tableLayoutPanelRigth.BackColor = sea_color;
 
             for (int i = 0; i < 10; i++)
             {
-
                 for (int j = 0; j < 10; j++)
-                {
-                    Button leftbutton = new();
-                    Button rigthButton = new();
-
-                    leftbutton.Name = rigthButton.Name = $"leftButton_{i}{j}";
-
-                    leftbutton.Dock = DockStyle.Fill;
-                    rigthButton.Dock = DockStyle.Fill;
-
-                    leftbutton.FlatStyle = FlatStyle.Flat;
-                    rigthButton.FlatStyle = FlatStyle.Flat;
-
-                    leftbutton.BackColor = ship_color;
-                    rigthButton.BackColor = ship_color;
-
-                    leftbutton.ForeColor = ship_color;
-                    rigthButton.ForeColor = ship_color;
-
-                    tableLayoutPanelLeft.Controls.Add(leftbutton, i, j);
-                    tableLayoutPanelRigth.Controls.Add(rigthButton, i, j);
-                }
+                    {
+                        Button leftCell = new();
+                        Button rigthCell = new();
+                        
+                        Font font = new("Perpetua", 1);
+                        leftCell.Font = font;
+                        rigthCell.Font = font;
+                        
+                        leftCell.Name = $"lefCell_{i}{j}";
+                        rigthCell.Name = $"rigthCell_{i}{j}";
+                        
+                        leftCell.Dock = DockStyle.Fill;
+                        rigthCell.Dock = DockStyle.Fill;
+                        
+                        leftCell.FlatStyle = FlatStyle.Flat;
+                        rigthCell.FlatStyle = FlatStyle.Flat;
+                        
+                        ChangeCellStatus(leftCell, 0);
+                        ChangeCellStatus(rigthCell, 0);
+                        
+                        leftCellMassive[i, j] = leftCell;
+                        rigthCellMassive[i, j] = rigthCell;
+                        
+                        tableLayoutPanelLeft.Controls.Add(leftCell, i, j);
+                        tableLayoutPanelRigth.Controls.Add(rigthCell, i, j);
+                    }
             }
 
-            for (int i = 0; i < 10; i++)
+        }
+
+        private void ChangeCellStatus(Button cell, int status)
+        {
+            if (status == -1)
             {
-                tableLayoutPanelLeft.ColumnStyles[i].SizeType = SizeType.Percent;
-                tableLayoutPanelRigth.ColumnStyles[i].SizeType = SizeType.Percent;
-
-                tableLayoutPanelLeft.RowStyles[i].SizeType = SizeType.Percent;
-                tableLayoutPanelRigth.RowStyles[i].SizeType = SizeType.Percent;
-
-                tableLayoutPanelLeft.ColumnStyles[i].Width = 10;
-                tableLayoutPanelRigth.ColumnStyles[i].Width = 10;
-
-                tableLayoutPanelLeft.RowStyles[i].Height = 10;
-                tableLayoutPanelRigth.RowStyles[i].Height = 10;
+                cell.BackColor = cell.ForeColor = Color.FromArgb(0, 0, 0);
+                cell.Text = "-1";
+            }    
+            else if (status == 0)
+            {
+                cell.BackColor = sea_color;
+                cell.Text = "0";
+            }
+            else if (status == 1)
+            {
+                cell.BackColor = cell.ForeColor = ship_color;
+                cell.Text = "1";
             }
         }
 
+        private void buttonSend_Click(object sender, EventArgs e)
+        {
+            string text = textBoxInput.Text;
+            if (text != "")
+            {
+                listBoxChat.Items.Add(text);
+                textBoxInput.Clear();
+            }
+
+        }
     }
 }
