@@ -24,8 +24,8 @@ namespace csbattleship
         int currentParts = 0;
         readonly int totalParts = 20;
 
-        //public Button[,] leftCellMassive = new Button[10, 10];
-        //public Button[,] rigthCellMassive = new Button[10, 10];
+        public Dictionary<string, Button> leftCellField = new();
+        public Dictionary<string, Button> rigthCellField = new();
 
         public MainForm()
         {
@@ -46,14 +46,10 @@ namespace csbattleship
                     this.host = textBoxHost.Text;
                     this.port = textBoxPort.Text;
 
-                    SendMessage($"Подключение к: {this.host}:{this.port}");
+                    SendMessage($"Подключение к: {this.host}:{this.port}..");
 
                     this.gameStatus = 1;
                 }
-            }
-            else
-            {
-                SendMessage("Не верный IP адресс!");
             }
         }
 
@@ -63,7 +59,15 @@ namespace csbattleship
             IPAddress.TryParse(textBoxHost.Text, out ip);
 
             if (textBoxPort.Text == "" || ip == null)
+            {
+                SendMessage("Не верный IP адресс.");
                 return false;
+            }
+            else if (this.currentParts != this.totalParts)
+            {
+                SendMessage("Не все корабли расставлены.");
+                return false;
+            }
 
             return true;
         }
@@ -80,8 +84,8 @@ namespace csbattleship
                     Button leftCell = new();
                     Button rigthCell = new();
 
-                    leftCell.Click += new EventHandler(LeftCellMassive_Click);
-                    rigthCell.Click += new EventHandler(RigthCellMassive_Click);
+                    leftCell.Click += new EventHandler(LeftCellField_Click);
+                    rigthCell.Click += new EventHandler(RigthCellField_Click);
 
                     Font font = new("Perpetua", 1);
                     leftCell.Font = font;
@@ -99,8 +103,8 @@ namespace csbattleship
                     ChangeCellStatus(leftCell, 0);
                     ChangeCellStatus(rigthCell, 0);
 
-                    //leftCellMassive[i, j] = leftCell;
-                    //rigthCellMassive[i, j] = rigthCell;
+                    leftCellField.Add($"{i}{j}", leftCell);
+                    rigthCellField.Add($"{i}{j}", rigthCell);
 
                     tableLayoutPanelLeft.Controls.Add(leftCell, i, j);
                     tableLayoutPanelRigth.Controls.Add(rigthCell, i, j);
@@ -108,14 +112,15 @@ namespace csbattleship
             }
         }
 
-        void LeftCellMassive_Click(object sender, EventArgs e)
+        void LeftCellField_Click(object sender, EventArgs e)
         {
             //Button pressed_cell = new();
             //for (int i = 0; i < 10; i++)
             //    for (int j = 0; j < 10; j++)
             //        if ((Button)sender == leftCellMassive[i, j])
             //            pressed_cell = leftCellMassive[i, j];
-
+            // TODO: работа со словарем кнопок
+            
             Button cell = (Button)sender;
 
             string name = cell.Name;
@@ -138,11 +143,18 @@ namespace csbattleship
 
         }
 
-        void RigthCellMassive_Click(object sender, EventArgs e)
+        void RigthCellField_Click(object sender, EventArgs e)
         {
             string name = ((Button)sender).Name;
 
             SendMessage(name);
+        }
+
+        bool CanSetShip(Button cell)
+        {
+            string 
+
+            return true;
         }
 
         void ChangeCellStatus(Button cell, int status)
