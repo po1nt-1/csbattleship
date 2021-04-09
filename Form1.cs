@@ -1,74 +1,290 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net;
 
 namespace csbattleship
 {
     public partial class MainForm : Form
     {
-        public Color sea_color = Color.FromArgb(0, 0, 128);
-        public Color ship_color = Color.FromArgb(19, 19, 19);
-        public string host = "";
-        public string port = "";
+        // Настройки цвета
+        readonly Color sea_color = Color.FromArgb(15, 45, 135);
+        readonly Color ship_color = Color.FromArgb(19, 19, 19);
+        readonly Color miss_color = Color.FromArgb(14, 40, 120);
+        readonly Color border_color = Color.FromArgb(14, 40, 120);
+
+        string host = "";
+        string port = "";
+
+        int gameStatus = 0;
+
+        // Ячейки кораблей
+        int currentParts = 0;
+        readonly int totalParts = 20;
+        bool vertical;
+        bool horizontal;
+
+        public Dictionary<string, Button> leftCellField = new();
+        public Dictionary<string, Button> rigthCellField = new();
 
         public MainForm()
         {
             InitializeComponent();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        void Form1_Load(object sender, EventArgs e)
         {
-            tableLayoutPanelLeft.BackColor = sea_color;
-            tableLayoutPanelRigth.BackColor = sea_color;
+            tableLayoutPanelLeft.BackColor = this.border_color;
+            tableLayoutPanelRigth.BackColor = this.border_color;
 
             for (int i = 0; i < 10; i++)
             {
-
                 for (int j = 0; j < 10; j++)
                 {
-                    Button leftbutton = new();
-                    Button rigthButton = new();
+                    Button leftCell = new();
+                    Button rigthCell = new();
 
-                    leftbutton.Name = rigthButton.Name = $"leftButton_{i}{j}";
+                    leftCell.Click += new EventHandler(LeftCellField_Click);
+                    rigthCell.Click += new EventHandler(RigthCellField_Click);
 
-                    leftbutton.Dock = DockStyle.Fill;
-                    rigthButton.Dock = DockStyle.Fill;
+                    leftCell.FlatAppearance.BorderSize = 0;
+                    rigthCell.FlatAppearance.BorderSize = 0;
 
-                    leftbutton.FlatStyle = FlatStyle.Flat;
-                    rigthButton.FlatStyle = FlatStyle.Flat;
+                    Font font = new("Perpetua", 1);
+                    leftCell.Font = font;
+                    rigthCell.Font = font;
 
-                    leftbutton.BackColor = ship_color;
-                    rigthButton.BackColor = ship_color;
+                    leftCell.Name = $"L{i}{j}";
+                    rigthCell.Name = $"R{i}{j}";
 
-                    leftbutton.ForeColor = ship_color;
-                    rigthButton.ForeColor = ship_color;
+                    leftCell.Dock = DockStyle.Fill;
+                    rigthCell.Dock = DockStyle.Fill;
 
-                    tableLayoutPanelLeft.Controls.Add(leftbutton, i, j);
-                    tableLayoutPanelRigth.Controls.Add(rigthButton, i, j);
+                    leftCell.FlatStyle = FlatStyle.Flat;
+                    rigthCell.FlatStyle = FlatStyle.Flat;
+
+                    SetCellStatus(leftCell, 0);
+                    SetCellStatus(rigthCell, 0);
+
+                    leftCellField.Add($"{i}{j}", leftCell);
+                    rigthCellField.Add($"{i}{j}", rigthCell);
+
+                    tableLayoutPanelLeft.Controls.Add(leftCell, i, j);
+                    tableLayoutPanelRigth.Controls.Add(rigthCell, i, j);
                 }
-            }
-
-            for (int i = 0; i < 10; i++)
-            {
-                tableLayoutPanelLeft.ColumnStyles[i].SizeType = SizeType.Percent;
-                tableLayoutPanelRigth.ColumnStyles[i].SizeType = SizeType.Percent;
-
-                tableLayoutPanelLeft.RowStyles[i].SizeType = SizeType.Percent;
-                tableLayoutPanelRigth.RowStyles[i].SizeType = SizeType.Percent;
-
-                tableLayoutPanelLeft.ColumnStyles[i].Width = 10;
-                tableLayoutPanelRigth.ColumnStyles[i].Width = 10;
-
-                tableLayoutPanelLeft.RowStyles[i].Height = 10;
-                tableLayoutPanelRigth.RowStyles[i].Height = 10;
             }
         }
 
+        void StartGame(object sender, EventArgs e)
+        {
+            if (Validvalidation())
+            {
+                this.gameStatus = 1;
+                buttonStart.Enabled = buttonClear.Enabled = textBoxHost.Enabled = textBoxPort.Enabled = false;
+
+                SendMessage($"Подключение к: {this.host}:{this.port}..");
+            }
+        }
+
+        bool Validvalidation()
+        {
+            if (textBoxHost.Text == "")
+                textBoxHost.Text = textBoxHost.PlaceholderText;
+            if (textBoxPort.Text == "")
+                textBoxPort.Text = textBoxPort.PlaceholderText;
+
+            IPAddress ip;
+            IPAddress.TryParse(textBoxHost.Text, out ip);
+
+            if (ip is null)
+            {
+                SendMessage("Не верный IP адресс.");
+                return false;
+            }
+            else if (this.currentParts != this.totalParts)
+            {
+                SendMessage("Не все корабли расставлены.");
+                return false;
+            }
+
+            this.host = textBoxHost.Text;
+            this.port = textBoxPort.Text;
+
+            return true;
+        }
+
+        void LeftCellField_Click(object sender, EventArgs e)
+        {
+            if (this.gameStatus == 0)
+            {
+                Button cell = (Button)sender;
+
+                string name = cell.Name; // debug
+
+                if (cell.Text == "1")
+                {
+                    SetCellStatus(cell, 0);
+                    this.currentParts -= 1;
+                    SendMessage($"Слева убран {name}"); // debug
+                }
+                else if (cell.Text == "0" && this.currentParts < this.totalParts)
+                {
+                    if (CanSetShip(cell))
+                    {
+                        SetCellStatus(cell, 1);
+                        this.currentParts += 1;
+                        SendMessage($"Слева выбран {name}"); // debug
+                    }
+                }
+            }
+        }
+
+        void RigthCellField_Click(object sender, EventArgs e)
+        {
+            if (this.gameStatus == 2)
+            {
+                string name = ((Button)sender).Name; // debug
+
+                SendMessage($"Справа нажат {name}"); // debug
+            }
+        }
+
+        bool CanSetShip(Button cell)
+        {
+            if (IsCellClear(cell, -1, -1) && IsCellClear(cell, -1, +1) && IsCellClear(cell, +1, -1) && IsCellClear(cell, +1, +1))
+            {
+                if ((this.currentParts == 0 || this.currentParts == 4 || this.currentParts == 7 || this.currentParts == 10 ||
+                    this.currentParts == 12 || this.currentParts == 14 || this.currentParts >= 16) &&
+                    (IsCellClear(cell, -1, 0) && IsCellClear(cell, 0, -1) && IsCellClear(cell, 0, +1) && IsCellClear(cell, +1, 0)))
+                {
+                    this.horizontal = false;
+                    this.vertical = false;
+                    SendMessage("ок");
+                    return true;
+                }
+
+                else if (this.currentParts == 1 || this.currentParts == 5 || this.currentParts == 8)
+                {
+                    if (IsCellClear(cell, -1, 0) || IsCellClear(cell, +1, 0))
+                    {
+                        this.horizontal = true;
+                        this.vertical = false;
+
+                        SendMessage("ок");
+                        return true;
+                    }
+                    else if (IsCellClear(cell, 0, -1) || IsCellClear(cell, 0, +1))
+                    {
+                        this.vertical = true;
+                        this.horizontal = false;
+
+                        SendMessage("ок");
+                        return true;
+                    }
+                }
+
+                else if ((this.currentParts == 2 || this.currentParts == 3 || this.currentParts == 6 || this.currentParts == 9) &&
+                    ((this.horizontal && (IsCellClear(cell, -1, 0) || IsCellClear(cell, +1, 0))) ||
+                        (this.vertical && (IsCellClear(cell, 0, +1) || IsCellClear(cell, 0, -1)))))
+                {
+                    SendMessage("ок");
+                    return true;
+                }
+
+                else if ((this.currentParts == 11 || this.currentParts == 13 || this.currentParts == 15) &&
+                    (IsCellClear(cell, -1, 0) || IsCellClear(cell, +1, 0) || IsCellClear(cell, 0, -1) || IsCellClear(cell, 0, +1)))
+                {
+                    SendMessage("ок");
+                    return true;
+                }
+            }
+
+            SendMessage("недоступно");
+            return false;
+        }
+
+        void SetCellStatus(Button cell, int status)
+        {
+            // Левое поле
+            if (status == 0)    // пусто
+            {
+                cell.BackColor = this.sea_color;
+                cell.Text = "0";
+            }
+            else if (status == 1)   // целый
+            {
+                cell.BackColor = this.ship_color;
+                cell.Text = "1";
+            }
+            // Правое поле
+            else if (status == 2)   // промах
+            {
+                cell.BackColor = this.miss_color;
+                cell.Text = "2";
+            }
+            else if (status == 3)   // попадание
+            {
+                cell.BackColor = this.ship_color;
+                cell.Text = "3";
+            }
+            else if (status == 4)   // когда корабль полностью потоплен // TODO
+            {
+                cell.BackColor = Color.FromArgb(0, 0, 0);
+                cell.Text = "4";
+            }
+        }
+
+        bool IsCellClear(Button cell, int dx, int dy)
+        {
+            try
+            {
+                if (leftCellField[$"{Convert.ToInt32(cell.Name[1].ToString()) + dx}{Convert.ToInt32(cell.Name[2].ToString()) + dy}"].Text == "0")
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch (KeyNotFoundException)
+            {
+                return true;
+            }
+        }
+
+        void ButtonSend_Click(object sender, EventArgs e)
+        {
+            string text = textBoxInput.Text;
+            if (text != "")
+            {
+                textBoxInput.Clear();
+                SendMessage(text, "player");
+            }
+
+        }
+
+        void SendMessage(string text, string from = "sys")
+        {
+            if (text != "" && from == "sys" || from == "player")
+            {
+                listBoxChat.Items.Add($"{from}: {text}");
+            }
+        }
+
+        void ButtonClear_Click(object sender, EventArgs e)
+        {
+            if (this.gameStatus == 0)
+            {
+                foreach (Button cell in tableLayoutPanelLeft.Controls)
+                {
+                    SetCellStatus(cell, 0);
+                }
+
+                this.currentParts = 0;
+            }
+        }
     }
 }
