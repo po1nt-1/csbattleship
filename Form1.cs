@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,9 +7,27 @@ using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net;
+using System.Net.Sockets;
 
 namespace csbattleship
 {
+    public class Network
+    {
+        TcpClient client = null;
+        NetworkStream stream = null;
+
+        public Network(string host, string port)
+        {
+            client = new TcpClient(host, Convert.ToInt32(port));
+            stream = client.GetStream();
+        }
+
+        public static void SendData()
+        {
+
+        }
+    }
+
     public partial class MainForm : Form
     {
         // Настройки цвета
@@ -26,8 +44,12 @@ namespace csbattleship
         // Ячейки кораблей
         int currentParts = 0;
         readonly int totalParts = 20;
+
         bool vertical;
         bool horizontal;
+        string last_set_coords = "";
+
+        bool IsClient = true;
 
         public Dictionary<string, Button> leftCellField = new();
         public Dictionary<string, Button> rigthCellField = new();
@@ -86,8 +108,11 @@ namespace csbattleship
             {
                 this.gameStatus = 1;
                 buttonStart.Enabled = buttonClear.Enabled = textBoxHost.Enabled = textBoxPort.Enabled = false;
+                radioButtonClient.Enabled = radioButtonServer.Enabled = false;
 
                 SendMessage($"Подключение к: {this.host}:{this.port}..");
+
+                // NetWorker = new(this.host, this.port);
             }
         }
 
@@ -158,53 +183,92 @@ namespace csbattleship
         {
             if (IsCellClear(cell, -1, -1) && IsCellClear(cell, -1, +1) && IsCellClear(cell, +1, -1) && IsCellClear(cell, +1, +1))
             {
+                if ((this.currentParts == 5 || this.currentParts == 6 || this.currentParts == 8 || this.currentParts == 9
+                     || this.currentParts == 11 || this.currentParts == 13 || this.currentParts == 15) && IsNearLastCoords(cell) == false)
+                {
+                    return false;
+                }
+
                 if ((this.currentParts == 0 || this.currentParts == 4 || this.currentParts == 7 || this.currentParts == 10 ||
                     this.currentParts == 12 || this.currentParts == 14 || this.currentParts >= 16) &&
-                    (IsCellClear(cell, -1, 0) && IsCellClear(cell, 0, -1) && IsCellClear(cell, 0, +1) && IsCellClear(cell, +1, 0)))
+                    (IsCellClear(cell, -1, 0) && IsCellClear(cell, 0, -1) && IsCellClear(cell, 0, +1) && IsCellClear(cell, +1, 0))) // 1я часть корабля
                 {
                     this.horizontal = false;
                     this.vertical = false;
-                    SendMessage("ок");
+
+                    UpdateLastCoords(cell);
                     return true;
                 }
 
-                else if (this.currentParts == 1 || this.currentParts == 5 || this.currentParts == 8)
+                else if (this.currentParts == 1 || this.currentParts == 5 || this.currentParts == 8)    // 2я часть корабля + определение направления
                 {
-                    if (IsCellClear(cell, -1, 0) || IsCellClear(cell, +1, 0))
+                    if (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false)
                     {
                         this.horizontal = true;
                         this.vertical = false;
 
-                        SendMessage("ок");
+                        UpdateLastCoords(cell);
                         return true;
                     }
-                    else if (IsCellClear(cell, 0, -1) || IsCellClear(cell, 0, +1))
+                    else if (IsCellClear(cell, 0, -1) == false || IsCellClear(cell, 0, +1) == false)
                     {
                         this.vertical = true;
                         this.horizontal = false;
 
-                        SendMessage("ок");
+                        UpdateLastCoords(cell);
                         return true;
                     }
                 }
 
                 else if ((this.currentParts == 2 || this.currentParts == 3 || this.currentParts == 6 || this.currentParts == 9) &&
-                    ((this.horizontal && (IsCellClear(cell, -1, 0) || IsCellClear(cell, +1, 0))) ||
-                        (this.vertical && (IsCellClear(cell, 0, +1) || IsCellClear(cell, 0, -1)))))
+                    ((this.horizontal && (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false)) ||
+                        (this.vertical && (IsCellClear(cell, 0, +1) == false || IsCellClear(cell, 0, -1) == false))))
                 {
-                    SendMessage("ок");
+                    UpdateLastCoords(cell);
                     return true;
                 }
 
                 else if ((this.currentParts == 11 || this.currentParts == 13 || this.currentParts == 15) &&
-                    (IsCellClear(cell, -1, 0) || IsCellClear(cell, +1, 0) || IsCellClear(cell, 0, -1) || IsCellClear(cell, 0, +1)))
+                    (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false || IsCellClear(cell, 0, -1) == false || IsCellClear(cell, 0, +1) == false))
                 {
-                    SendMessage("ок");
+                    UpdateLastCoords(cell);
                     return true;
                 }
             }
 
             SendMessage("недоступно");
+            return false;
+        }
+
+        void UpdateLastCoords(Button cell)
+        {
+            this.last_set_coords = "";
+            this.last_set_coords += Convert.ToInt32(cell.Name[1].ToString());
+            this.last_set_coords += Convert.ToInt32(cell.Name[2].ToString());
+        }
+
+        bool IsNearLastCoords(Button cell)
+        {
+            for (int i = -1; i <= 1; i++)
+            {
+                for (int j = -1; j <= 1; j++)
+                {
+                    try
+                    {
+                        string iter_coords = $"{Convert.ToInt32(cell.Name[1].ToString()) + i}{Convert.ToInt32(cell.Name[2].ToString()) + j}";
+
+                        if (leftCellField[iter_coords].Text == "1" && $"{this.last_set_coords[0]}{this.last_set_coords[1]}" == iter_coords)
+                        {
+                            return true;
+                        }
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        continue;
+                    }
+                }
+            }
+
             return false;
         }
 
@@ -232,7 +296,7 @@ namespace csbattleship
                 cell.BackColor = this.ship_color;
                 cell.Text = "3";
             }
-            else if (status == 4)   // когда корабль полностью потоплен // TODO
+            else if (status == 4)   // когда корабль полностью потоплен
             {
                 cell.BackColor = Color.FromArgb(0, 0, 0);
                 cell.Text = "4";
@@ -268,9 +332,11 @@ namespace csbattleship
 
         void SendMessage(string text, string from = "sys")
         {
-            if (text != "" && from == "sys" || from == "player")
+            text = text.Trim();
+            if (text != "")
             {
                 listBoxChat.Items.Add($"{from}: {text}");
+                listBoxChat.TopIndex = listBoxChat.Items.Count - 1;
             }
         }
 
@@ -285,6 +351,18 @@ namespace csbattleship
 
                 this.currentParts = 0;
             }
+        }
+
+        private void radioButtonClient_CheckedChanged(object sender, EventArgs e)
+        {
+            this.IsClient = true;
+            SendMessage("выбран Client");
+        }
+
+        private void radioButtonServer_CheckedChanged(object sender, EventArgs e)
+        {
+            this.IsClient = false;
+            SendMessage("выбран Server");
         }
     }
 }
