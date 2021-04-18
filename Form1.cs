@@ -1,9 +1,13 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Drawing;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
-using System.Windows.Forms;
 
 namespace csbattleship
 {
@@ -35,8 +39,6 @@ namespace csbattleship
         string host = "";
         string port = "";
 
-        public Network NetWorker = null;
-
         int gameStatus = 0;
 
         // Ячейки кораблей
@@ -46,7 +48,9 @@ namespace csbattleship
         bool vertical;
         bool horizontal;
         string last_set_coords = "";
-        
+
+        bool IsClient = true;
+
         public Dictionary<string, Button> leftCellField = new();
         public Dictionary<string, Button> rigthCellField = new();
 
@@ -104,6 +108,7 @@ namespace csbattleship
             {
                 this.gameStatus = 1;
                 buttonStart.Enabled = buttonClear.Enabled = textBoxHost.Enabled = textBoxPort.Enabled = false;
+                radioButtonClient.Enabled = radioButtonServer.Enabled = false;
 
                 SendMessage($"Подключение к: {this.host}:{this.port}..");
 
@@ -291,7 +296,7 @@ namespace csbattleship
                 cell.BackColor = this.ship_color;
                 cell.Text = "3";
             }
-            else if (status == 4)   // когда корабль полностью потоплен // TODO
+            else if (status == 4)   // когда корабль полностью потоплен
             {
                 cell.BackColor = Color.FromArgb(0, 0, 0);
                 cell.Text = "4";
@@ -327,7 +332,8 @@ namespace csbattleship
 
         void SendMessage(string text, string from = "sys")
         {
-            if (text != "" && from == "sys" || from == "player")
+            text = text.Trim();
+            if (text != "")
             {
                 listBoxChat.Items.Add($"{from}: {text}");
                 listBoxChat.TopIndex = listBoxChat.Items.Count - 1;
@@ -345,6 +351,18 @@ namespace csbattleship
 
                 this.currentParts = 0;
             }
+        }
+
+        private void radioButtonClient_CheckedChanged(object sender, EventArgs e)
+        {
+            this.IsClient = true;
+            SendMessage("выбран Client");
+        }
+
+        private void radioButtonServer_CheckedChanged(object sender, EventArgs e)
+        {
+            this.IsClient = false;
+            SendMessage("выбран Server");
         }
     }
 }
