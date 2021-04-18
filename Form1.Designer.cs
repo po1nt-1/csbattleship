@@ -1,4 +1,4 @@
-﻿
+
 namespace csbattleship
 {
     partial class MainForm
@@ -40,6 +40,9 @@ namespace csbattleship
             this.buttonStart = new System.Windows.Forms.Button();
             this.tableLayoutPaneBase = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanelUpper = new System.Windows.Forms.TableLayoutPanel();
+            this.tableLayoutPanelChBoxes = new System.Windows.Forms.TableLayoutPanel();
+            this.radioButtonClient = new System.Windows.Forms.RadioButton();
+            this.radioButtonServer = new System.Windows.Forms.RadioButton();
             this.labelHost = new System.Windows.Forms.Label();
             this.labelPort = new System.Windows.Forms.Label();
             this.textBoxPort = new System.Windows.Forms.TextBox();
@@ -51,6 +54,7 @@ namespace csbattleship
             this.tableLayoutPanelMessage.SuspendLayout();
             this.tableLayoutPaneBase.SuspendLayout();
             this.tableLayoutPanelUpper.SuspendLayout();
+            this.tableLayoutPanelChBoxes.SuspendLayout();
             this.tableLayoutPanelButtons.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -256,6 +260,7 @@ namespace csbattleship
             this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 15F));
             this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 15F));
             this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 70F));
+            this.tableLayoutPanelUpper.Controls.Add(this.tableLayoutPanelChBoxes, 2, 0);
             this.tableLayoutPanelUpper.Controls.Add(this.labelHost, 0, 0);
             this.tableLayoutPanelUpper.Controls.Add(this.labelPort, 1, 0);
             this.tableLayoutPanelUpper.Controls.Add(this.textBoxPort, 1, 1);
@@ -270,6 +275,48 @@ namespace csbattleship
             this.tableLayoutPanelUpper.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanelUpper.Size = new System.Drawing.Size(991, 72);
             this.tableLayoutPanelUpper.TabIndex = 1;
+            // 
+            // tableLayoutPanelChBoxes
+            // 
+            this.tableLayoutPanelChBoxes.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.tableLayoutPanelChBoxes.AutoSize = true;
+            this.tableLayoutPanelChBoxes.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.tableLayoutPanelChBoxes.ColumnCount = 2;
+            this.tableLayoutPanelChBoxes.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanelChBoxes.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanelChBoxes.Controls.Add(this.radioButtonClient, 0, 0);
+            this.tableLayoutPanelChBoxes.Controls.Add(this.radioButtonServer, 1, 0);
+            this.tableLayoutPanelChBoxes.Location = new System.Drawing.Point(577, 5);
+            this.tableLayoutPanelChBoxes.Name = "tableLayoutPanelChBoxes";
+            this.tableLayoutPanelChBoxes.RowCount = 1;
+            this.tableLayoutPanelChBoxes.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanelChBoxes.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanelChBoxes.Size = new System.Drawing.Size(132, 25);
+            this.tableLayoutPanelChBoxes.TabIndex = 7;
+            // 
+            // radioButtonClient
+            // 
+            this.radioButtonClient.AutoSize = true;
+            this.radioButtonClient.Checked = true;
+            this.radioButtonClient.Location = new System.Drawing.Point(3, 3);
+            this.radioButtonClient.Name = "radioButtonClient";
+            this.radioButtonClient.Size = new System.Drawing.Size(57, 19);
+            this.radioButtonClient.TabIndex = 2;
+            this.radioButtonClient.TabStop = true;
+            this.radioButtonClient.Text = "Client";
+            this.radioButtonClient.UseVisualStyleBackColor = true;
+            this.radioButtonClient.CheckedChanged += new System.EventHandler(this.radioButtonClient_CheckedChanged);
+            // 
+            // radioButtonServer
+            // 
+            this.radioButtonServer.AutoSize = true;
+            this.radioButtonServer.Location = new System.Drawing.Point(69, 3);
+            this.radioButtonServer.Name = "radioButtonServer";
+            this.radioButtonServer.Size = new System.Drawing.Size(60, 19);
+            this.radioButtonServer.TabIndex = 3;
+            this.radioButtonServer.Text = "Server";
+            this.radioButtonServer.UseVisualStyleBackColor = true;
+            this.radioButtonServer.CheckedChanged += new System.EventHandler(this.radioButtonServer_CheckedChanged);
             // 
             // labelHost
             // 
@@ -386,6 +433,8 @@ namespace csbattleship
             this.tableLayoutPaneBase.PerformLayout();
             this.tableLayoutPanelUpper.ResumeLayout(false);
             this.tableLayoutPanelUpper.PerformLayout();
+            this.tableLayoutPanelChBoxes.ResumeLayout(false);
+            this.tableLayoutPanelChBoxes.PerformLayout();
             this.tableLayoutPanelButtons.ResumeLayout(false);
             this.tableLayoutPanelButtons.PerformLayout();
             this.ResumeLayout(false);
@@ -411,6 +460,9 @@ namespace csbattleship
         private System.Windows.Forms.Button buttonClear;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelLeft;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelRigth;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanelChBoxes;
+        private System.Windows.Forms.RadioButton radioButtonClient;
+        private System.Windows.Forms.RadioButton radioButtonServer;
     }
 }
 
