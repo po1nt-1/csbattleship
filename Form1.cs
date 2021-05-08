@@ -1,43 +1,115 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
 
 namespace csbattleship
 {
-    public class Network
+    public class NetworkClass
     {
-        TcpClient client = null;
+        const int port = 8888;
+        static TcpListener listener;
+        public TcpClient client;
         NetworkStream stream = null;
 
-        public Network(string host, string port)
+        public NetworkClass(TcpClient tcpClient)
         {
-            client = new TcpClient(host, Convert.ToInt32(port));
-            stream = client.GetStream();
+            client = tcpClient;
         }
 
-        public static void SendData()
+        public void Worker()
         {
+            try
+            {
+                stream = client.GetStream();
+                byte[] data = new byte[64];
+                while (true)
+                {
+                    string message = "";
+                    int bytes = 0;
+                    do
+                    {
+                        bytes = stream.Read(data, 0, data.Length);
+                        message += Encoding.UTF8.GetString(data, 0, bytes);
+                    }
+                    while (stream.DataAvailable);
 
+                    if (message.Length > 0)
+                    {
+                        data = Encoding.UTF8.GetBytes("[получено] " + message);
+                        stream.Write(data, 0, data.Length);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                if (stream != null)
+                    stream.Close();
+                if (client != null)
+                    client.Close();
+            }
+        }
+
+        public static void Server()
+        {
+            try
+            {
+                listener = new TcpListener(IPAddress.Parse(Program.f.host), Program.f.port);
+                listener.Start();
+
+                TcpClient client = listener.AcceptTcpClient();
+                NetworkClass clientObject = new(client);
+                Thread clientThread = new(new ThreadStart(clientObject.Worker));
+                clientThread.Start();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                if (listener != null)
+                    listener.Stop();
+            }
+        }
+
+        public static void Client()
+        {
+            try
+            {
+                TcpClient client = new(Program.f.host, Program.f.port);
+                NetworkClass clientObject = new(client);
+                Thread clientThread = new(new ThreadStart(clientObject.Worker));
+                clientThread.Start();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
+
 
     public partial class MainForm : Form
     {
         // Настройки цвета
+        readonly Color border_color = Color.FromArgb(14, 40, 120);
         readonly Color sea_color = Color.FromArgb(15, 45, 135);
         readonly Color ship_color = Color.FromArgb(19, 19, 19);
-        readonly Color miss_color = Color.FromArgb(14, 40, 120);
-        readonly Color border_color = Color.FromArgb(14, 40, 120);
+        readonly Color miss_color = Color.FromArgb(40, 50, 80);
+        readonly Color hit_color = Color.FromArgb(40, 50, 80);
 
-        string host = "";
-        string port = "";
+        public string host = "127.0.0.1";
+        public int port = 7070;
 
         int gameStatus = 0;
 
@@ -49,6 +121,8 @@ namespace csbattleship
         bool horizontal;
         string last_set_coords = "";
 
+        string transportData;
+
         bool IsClient = true;
 
         public Dictionary<string, Button> leftCellField = new();
@@ -56,6 +130,7 @@ namespace csbattleship
 
         public MainForm()
         {
+            Program.f = this;
             InitializeComponent();
         }
 
@@ -109,10 +184,15 @@ namespace csbattleship
                 this.gameStatus = 1;
                 buttonStart.Enabled = buttonClear.Enabled = textBoxHost.Enabled = textBoxPort.Enabled = false;
                 radioButtonClient.Enabled = radioButtonServer.Enabled = false;
-
-                SendMessage($"Подключение к: {this.host}:{this.port}..");
-
-                // NetWorker = new(this.host, this.port);
+                
+                if (this.IsClient)
+                {
+                    NetworkClass.Client();
+                }
+                else
+                {
+                    NetworkClass.Server();
+                }
             }
         }
 
@@ -128,7 +208,17 @@ namespace csbattleship
 
             if (ip is null)
             {
-                SendMessage("Не верный IP адресс.");
+                SendMessage("Не верно указан IP адресс.");
+                return false;
+            }
+            else if (int.TryParse(textBoxPort.Text, out _) == false)
+            {
+                SendMessage("Не верно указан порт.");
+                return false;
+            }
+            else if (Convert.ToInt32(textBoxPort.Text) < 1000 || Convert.ToInt32(textBoxPort.Text) > Math.Pow(2, 16))
+            {
+                SendMessage("Не верно указан порт.");
                 return false;
             }
             else if (this.currentParts != this.totalParts)
@@ -138,8 +228,7 @@ namespace csbattleship
             }
 
             this.host = textBoxHost.Text;
-            this.port = textBoxPort.Text;
-
+            this.port = Convert.ToInt32(textBoxPort.Text);
             return true;
         }
 
@@ -149,13 +238,10 @@ namespace csbattleship
             {
                 Button cell = (Button)sender;
 
-                string name = cell.Name; // debug
-
                 if (cell.Text == "1")
                 {
                     SetCellStatus(cell, 0);
                     this.currentParts -= 1;
-                    SendMessage($"Слева убран {name}"); // debug
                 }
                 else if (cell.Text == "0" && this.currentParts < this.totalParts)
                 {
@@ -163,7 +249,6 @@ namespace csbattleship
                     {
                         SetCellStatus(cell, 1);
                         this.currentParts += 1;
-                        SendMessage($"Слева выбран {name}"); // debug
                     }
                 }
             }
@@ -173,9 +258,7 @@ namespace csbattleship
         {
             if (this.gameStatus == 2)
             {
-                string name = ((Button)sender).Name; // debug
-
-                SendMessage($"Справа нажат {name}"); // debug
+                this.transportData = $"{((Button)sender).Name}";
             }
         }
 
@@ -191,7 +274,7 @@ namespace csbattleship
 
                 if ((this.currentParts == 0 || this.currentParts == 4 || this.currentParts == 7 || this.currentParts == 10 ||
                     this.currentParts == 12 || this.currentParts == 14 || this.currentParts >= 16) &&
-                    (IsCellClear(cell, -1, 0) && IsCellClear(cell, 0, -1) && IsCellClear(cell, 0, +1) && IsCellClear(cell, +1, 0))) // 1я часть корабля
+                    (IsCellClear(cell, -1, 0) && IsCellClear(cell, 0, -1) && IsCellClear(cell, 0, +1) && IsCellClear(cell, +1, 0)))
                 {
                     this.horizontal = false;
                     this.vertical = false;
@@ -200,7 +283,7 @@ namespace csbattleship
                     return true;
                 }
 
-                else if (this.currentParts == 1 || this.currentParts == 5 || this.currentParts == 8)    // 2я часть корабля + определение направления
+                else if (this.currentParts == 1 || this.currentParts == 5 || this.currentParts == 8)
                 {
                     if (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false)
                     {
@@ -293,13 +376,8 @@ namespace csbattleship
             }
             else if (status == 3)   // попадание
             {
-                cell.BackColor = this.ship_color;
+                cell.BackColor = this.hit_color;
                 cell.Text = "3";
-            }
-            else if (status == 4)   // когда корабль полностью потоплен
-            {
-                cell.BackColor = Color.FromArgb(0, 0, 0);
-                cell.Text = "4";
             }
         }
 
@@ -355,14 +433,15 @@ namespace csbattleship
 
         private void radioButtonClient_CheckedChanged(object sender, EventArgs e)
         {
-            this.IsClient = true;
-            SendMessage("выбран Client");
-        }
-
-        private void radioButtonServer_CheckedChanged(object sender, EventArgs e)
-        {
-            this.IsClient = false;
-            SendMessage("выбран Server");
+            this.IsClient = !this.IsClient;
+            if (this.IsClient)
+            {
+                SendMessage("выбран Client");
+            }
+            else if (!this.IsClient)
+            {
+                SendMessage("выбран Server");
+            }    
         }
     }
 }

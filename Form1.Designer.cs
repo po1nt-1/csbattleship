@@ -316,7 +316,6 @@ namespace csbattleship
             this.radioButtonServer.TabIndex = 3;
             this.radioButtonServer.Text = "Server";
             this.radioButtonServer.UseVisualStyleBackColor = true;
-            this.radioButtonServer.CheckedChanged += new System.EventHandler(this.radioButtonServer_CheckedChanged);
             // 
             // labelHost
             // 
@@ -445,16 +444,16 @@ namespace csbattleship
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelLower;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelChat;
-        private System.Windows.Forms.ListBox listBoxChat;
-        private System.Windows.Forms.Button buttonSend;
+        public System.Windows.Forms.ListBox listBoxChat;
+        public System.Windows.Forms.Button buttonSend;
         private System.Windows.Forms.Button buttonStart;
         private System.Windows.Forms.TextBox textBoxInput;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPaneBase;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelUpper;
         private System.Windows.Forms.Label labelHost;
         private System.Windows.Forms.Label labelPort;
-        private System.Windows.Forms.TextBox textBoxHost;
-        private System.Windows.Forms.TextBox textBoxPort;
+        public System.Windows.Forms.TextBox textBoxHost;
+        public System.Windows.Forms.TextBox textBoxPort;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelMessage;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelButtons;
         private System.Windows.Forms.Button buttonClear;

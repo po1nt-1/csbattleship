@@ -8,6 +8,8 @@ namespace csbattleship
 {
     static class Program
     {
+        public static MainForm f;
+
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
