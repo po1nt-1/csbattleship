@@ -17,6 +17,10 @@ namespace csbattleship
         public TcpClient client;
         NetworkStream stream = null;
 
+        static Thread clientThread = null;
+        static Thread serverThread = null;
+
+
         public NetworkClass(TcpClient tcpClient)
         {
             client = tcpClient;
@@ -26,11 +30,20 @@ namespace csbattleship
         {
             try
             {
-                stream = client.GetStream();
+                if (ConnectionSuccessful())
+                {
+                    Program.f.SetGameStatus(1);
+                }
+                else
+                {
+                    throw new Exception("Соединение не установлено");
+                }
+
                 byte[] data = new byte[64];
+
                 while (true)
                 {
-                    string message = "";
+                    string message = "...служебное сообщение...";
                     int bytes = 0;
                     do
                     {
@@ -48,7 +61,8 @@ namespace csbattleship
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Program.f.SetGameStatus(0);
+                Program.f.SendMessage(ex.Message);
             }
             finally
             {
@@ -59,21 +73,63 @@ namespace csbattleship
             }
         }
 
+        bool ConnectionSuccessful()
+        {
+            try
+            {
+                stream = client.GetStream();
+                byte[] data = new byte[64];
+
+                data = Encoding.UTF8.GetBytes("test test test");
+                stream.Write(data, 0, data.Length);
+
+                int bytes = 0;
+                string message = "";
+                do
+                {
+                    bytes = stream.Read(data, 0, data.Length);
+                    message += Encoding.UTF8.GetString(data, 0, bytes);
+                }
+                while (stream.DataAvailable);
+
+                if (message == "test test test")
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public static void Server()
         {
             try
             {
-                listener = new TcpListener(IPAddress.Parse(Program.f.host), Program.f.port);
-                listener.Start();
-
-                TcpClient client = listener.AcceptTcpClient();
-                NetworkClass clientObject = new(client);
-                Thread clientThread = new(new ThreadStart(clientObject.Worker));
-                clientThread.Start();
+                new Thread(() =>
+                {
+                    try
+                    {
+                        listener = new TcpListener(IPAddress.Parse(Program.f.host), Program.f.port);
+                        listener.Start();
+                        TcpClient client = listener.AcceptTcpClient();
+                        NetworkClass clientObject = new(client);
+                        clientObject.Worker();
+                    }
+                    catch (Exception ex)
+                    {
+                        Program.f.SendMessage(ex.Message);
+                        Program.f.SetGameStatus(0);
+                    }
+                }).Start();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Program.f.SendMessage(ex.Message);
+                Program.f.SetGameStatus(0);
             }
             finally
             {
@@ -86,18 +142,29 @@ namespace csbattleship
         {
             try
             {
-                TcpClient client = new(Program.f.host, Program.f.port);
-                NetworkClass clientObject = new(client);
-                Thread clientThread = new(new ThreadStart(clientObject.Worker));
-                clientThread.Start();
+                new Thread(() =>
+                {
+                    try
+                    {
+                        TcpClient client = new(Program.f.host, Program.f.port);
+                        NetworkClass clientObject = new(client);
+                        clientObject.Worker();
+                    }
+                    catch (Exception ex)
+                    {
+                        Program.f.SendMessage(ex.Message);
+                        Program.f.SetGameStatus(0);
+                    }
+                }).Start();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Program.f.SendMessage(ex.Message);
+                Program.f.SetGameStatus(0);
             }
         }
-    }
 
+    }
 
     public partial class MainForm : Form
     {
@@ -111,7 +178,7 @@ namespace csbattleship
         public string host = "127.0.0.1";
         public int port = 7070;
 
-        int gameStatus = 0;
+        public int gameStatus = 0;
 
         // Ячейки кораблей
         int currentParts = 0;
@@ -130,7 +197,8 @@ namespace csbattleship
 
         public MainForm()
         {
-            Program.f = this;
+            Program.f = this;   // для использования в NetworkClass
+
             InitializeComponent();
         }
 
@@ -175,16 +243,21 @@ namespace csbattleship
                     tableLayoutPanelRigth.Controls.Add(rigthCell, i, j);
                 }
             }
-        }
 
+            buttonClear.Enabled = false;
+            tableLayoutPanelLeft.Enabled = false;
+            tableLayoutPanelRigth.Enabled = false;
+            tableLayoutPanelMessage.Enabled = false;
+        }
+        
         void StartGame(object sender, EventArgs e)
         {
-            if (Validvalidation())
+            if (gameStatus == 0 && checkConnect())
             {
-                this.gameStatus = 1;
-                buttonStart.Enabled = buttonClear.Enabled = textBoxHost.Enabled = textBoxPort.Enabled = false;
+                textBoxHost.Enabled = textBoxPort.Enabled = false;
                 radioButtonClient.Enabled = radioButtonServer.Enabled = false;
-                
+                buttonStart.Enabled = false;
+
                 if (this.IsClient)
                 {
                     NetworkClass.Client();
@@ -194,9 +267,13 @@ namespace csbattleship
                     NetworkClass.Server();
                 }
             }
+            else if (gameStatus == 1 && checkBattle())
+            {
+                SetGameStatus(2);                
+            }
         }
 
-        bool Validvalidation()
+        bool checkConnect()
         {
             if (textBoxHost.Text == "")
                 textBoxHost.Text = textBoxHost.PlaceholderText;
@@ -221,20 +298,73 @@ namespace csbattleship
                 SendMessage("Не верно указан порт.");
                 return false;
             }
-            else if (this.currentParts != this.totalParts)
-            {
-                SendMessage("Не все корабли расставлены.");
-                return false;
-            }
 
             this.host = textBoxHost.Text;
             this.port = Convert.ToInt32(textBoxPort.Text);
             return true;
         }
 
+        bool checkBattle()
+        {
+            if (this.currentParts != this.totalParts)
+            {
+                SendMessage("Не все корабли расставлены.");
+                return false;
+            }
+
+            return true;
+        }
+
+        public void SetGameStatus(int newGameStatus)
+        {
+            Action action = () =>
+            {
+                if (newGameStatus == 0)
+                {
+                    gameStatus = 0;
+                    if (this.host == "127.0.0.1")
+                        textBoxHost.Text = "";
+                    if (this.port == 7070)
+                        textBoxPort.Text = "";
+                    textBoxHost.Enabled = textBoxPort.Enabled = true;
+                    radioButtonClient.Enabled = radioButtonServer.Enabled = true;
+                    buttonClear.Enabled = false;
+                    tableLayoutPanelLeft.Enabled = false;
+                    tableLayoutPanelRigth.Enabled = false;
+                    tableLayoutPanelMessage.Enabled = false;
+                    buttonStart.Text = "Подключиться";
+                    buttonStart.Enabled = true;
+                    SendMessage("gameStatus = 0");
+                }
+                else if (newGameStatus == 1)
+                {
+                    gameStatus = 1;
+                    buttonClear.Enabled = true;
+                    tableLayoutPanelLeft.Enabled = true;
+                    tableLayoutPanelMessage.Enabled = true;
+                    buttonStart.Text = "В бой";
+                    buttonStart.Enabled = true;
+                    SendMessage("gameStatus = 1");
+                }
+                else if (newGameStatus == 2)
+                {
+                    gameStatus = 2;
+                    tableLayoutPanelLeft.Enabled = buttonClear.Enabled = buttonStart.Enabled = false;
+                    tableLayoutPanelRigth.Enabled = true;
+                    SendMessage("gameStatus = 2");
+                }
+            };
+
+            if (InvokeRequired)
+                Invoke(action);
+            else
+                action();
+
+        }
+
         void LeftCellField_Click(object sender, EventArgs e)
         {
-            if (this.gameStatus == 0)
+            if (gameStatus == 1)
             {
                 Button cell = (Button)sender;
 
@@ -256,7 +386,7 @@ namespace csbattleship
 
         void RigthCellField_Click(object sender, EventArgs e)
         {
-            if (this.gameStatus == 2)
+            if (gameStatus == 2)
             {
                 this.transportData = $"{((Button)sender).Name}";
             }
@@ -319,7 +449,7 @@ namespace csbattleship
                 }
             }
 
-            SendMessage("недоступно");
+            SendMessage("Эта ячейка недоступна.");
             return false;
         }
 
@@ -408,19 +538,27 @@ namespace csbattleship
 
         }
 
-        void SendMessage(string text, string from = "sys")
+        public void SendMessage(string text, string from = "sys")
         {
-            text = text.Trim();
-            if (text != "")
+            Action action = () =>
             {
-                listBoxChat.Items.Add($"{from}: {text}");
-                listBoxChat.TopIndex = listBoxChat.Items.Count - 1;
-            }
+                text = text.Trim();
+                if (text != "")
+                {
+                    listBoxChat.Items.Add($"{from}: {text}");
+                    listBoxChat.TopIndex = listBoxChat.Items.Count - 1;
+                }
+            };
+
+            if (InvokeRequired)
+                Invoke(action);
+            else
+                action();
         }
 
         void ButtonClear_Click(object sender, EventArgs e)
         {
-            if (this.gameStatus == 0)
+            if (gameStatus == 1)
             {
                 foreach (Button cell in tableLayoutPanelLeft.Controls)
                 {

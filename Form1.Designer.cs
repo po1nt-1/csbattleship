@@ -236,7 +236,7 @@ namespace csbattleship
             this.buttonStart.Name = "buttonStart";
             this.buttonStart.Size = new System.Drawing.Size(75, 27);
             this.buttonStart.TabIndex = 5;
-            this.buttonStart.Text = "    В бой    ";
+            this.buttonStart.Text = "Подключиться";
             this.buttonStart.UseVisualStyleBackColor = false;
             this.buttonStart.Click += new System.EventHandler(this.StartGame);
             // 
@@ -444,9 +444,9 @@ namespace csbattleship
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelLower;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelChat;
-        public System.Windows.Forms.ListBox listBoxChat;
-        public System.Windows.Forms.Button buttonSend;
-        private System.Windows.Forms.Button buttonStart;
+        private System.Windows.Forms.ListBox listBoxChat;
+        private System.Windows.Forms.Button buttonSend;
+        public System.Windows.Forms.Button buttonStart;
         private System.Windows.Forms.TextBox textBoxInput;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPaneBase;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelUpper;
@@ -454,11 +454,11 @@ namespace csbattleship
         private System.Windows.Forms.Label labelPort;
         public System.Windows.Forms.TextBox textBoxHost;
         public System.Windows.Forms.TextBox textBoxPort;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanelMessage;
+        public System.Windows.Forms.TableLayoutPanel tableLayoutPanelMessage;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelButtons;
-        private System.Windows.Forms.Button buttonClear;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanelLeft;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanelRigth;
+        public System.Windows.Forms.Button buttonClear;
+        public System.Windows.Forms.TableLayoutPanel tableLayoutPanelLeft;
+        public System.Windows.Forms.TableLayoutPanel tableLayoutPanelRigth;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelChBoxes;
         private System.Windows.Forms.RadioButton radioButtonClient;
         private System.Windows.Forms.RadioButton radioButtonServer;

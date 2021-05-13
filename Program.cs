@@ -8,7 +8,7 @@ namespace csbattleship
 {
     static class Program
     {
-        public static MainForm f;
+        public static MainForm f;   // для использования MainForm в NetworkClass
 
         /// <summary>
         ///  The main entry point for the application.
