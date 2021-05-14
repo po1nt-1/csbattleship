@@ -3,170 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 
 
 namespace csbattleship
 {
-    public class NetworkClass
-    {
-        const int port = 8888;
-        static TcpListener listener;
-        public TcpClient client;
-        NetworkStream stream = null;
-
-        static Thread clientThread = null;
-        static Thread serverThread = null;
-
-
-        public NetworkClass(TcpClient tcpClient)
-        {
-            client = tcpClient;
-        }
-
-        public void Worker()
-        {
-            try
-            {
-                if (ConnectionSuccessful())
-                {
-                    Program.f.SetGameStatus(1);
-                }
-                else
-                {
-                    throw new Exception("Соединение не установлено");
-                }
-
-                byte[] data = new byte[64];
-
-                while (true)
-                {
-                    string message = "...служебное сообщение...";
-                    int bytes = 0;
-                    do
-                    {
-                        bytes = stream.Read(data, 0, data.Length);
-                        message += Encoding.UTF8.GetString(data, 0, bytes);
-                    }
-                    while (stream.DataAvailable);
-
-                    if (message.Length > 0)
-                    {
-                        data = Encoding.UTF8.GetBytes("[получено] " + message);
-                        stream.Write(data, 0, data.Length);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Program.f.SetGameStatus(0);
-                Program.f.SendMessage(ex.Message);
-            }
-            finally
-            {
-                if (stream != null)
-                    stream.Close();
-                if (client != null)
-                    client.Close();
-            }
-        }
-
-        bool ConnectionSuccessful()
-        {
-            try
-            {
-                stream = client.GetStream();
-                byte[] data = new byte[64];
-
-                data = Encoding.UTF8.GetBytes("test test test");
-                stream.Write(data, 0, data.Length);
-
-                int bytes = 0;
-                string message = "";
-                do
-                {
-                    bytes = stream.Read(data, 0, data.Length);
-                    message += Encoding.UTF8.GetString(data, 0, bytes);
-                }
-                while (stream.DataAvailable);
-
-                if (message == "test test test")
-                {
-                    return true;
-                }
-
-                return false;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        public static void Server()
-        {
-            try
-            {
-                new Thread(() =>
-                {
-                    try
-                    {
-                        listener = new TcpListener(IPAddress.Parse(Program.f.host), Program.f.port);
-                        listener.Start();
-                        TcpClient client = listener.AcceptTcpClient();
-                        NetworkClass clientObject = new(client);
-                        clientObject.Worker();
-                    }
-                    catch (Exception ex)
-                    {
-                        Program.f.SendMessage(ex.Message);
-                        Program.f.SetGameStatus(0);
-                    }
-                }).Start();
-            }
-            catch (Exception ex)
-            {
-                Program.f.SendMessage(ex.Message);
-                Program.f.SetGameStatus(0);
-            }
-            finally
-            {
-                if (listener != null)
-                    listener.Stop();
-            }
-        }
-
-        public static void Client()
-        {
-            try
-            {
-                new Thread(() =>
-                {
-                    try
-                    {
-                        TcpClient client = new(Program.f.host, Program.f.port);
-                        NetworkClass clientObject = new(client);
-                        clientObject.Worker();
-                    }
-                    catch (Exception ex)
-                    {
-                        Program.f.SendMessage(ex.Message);
-                        Program.f.SetGameStatus(0);
-                    }
-                }).Start();
-            }
-            catch (Exception ex)
-            {
-                Program.f.SendMessage(ex.Message);
-                Program.f.SetGameStatus(0);
-            }
-        }
-
-    }
-
-    public partial class MainForm : Form
+    public partial class Form1 : Form
     {
         // Настройки цвета
         readonly Color border_color = Color.FromArgb(14, 40, 120);
@@ -178,24 +19,26 @@ namespace csbattleship
         public string host = "127.0.0.1";
         public int port = 7070;
 
-        public int gameStatus = 0;
+        int gameStatus = 0;
 
         // Ячейки кораблей
         int currentParts = 0;
-        readonly int totalParts = 20;
+        const int totalParts = 20;
 
         bool vertical;
         bool horizontal;
-        string last_set_coords = "";
 
-        string transportData;
+        Stack<Button> setCoordsStack = new(totalParts);
+
+        public string transportData;
 
         bool IsClient = true;
 
-        public Dictionary<string, Button> leftCellField = new();
-        public Dictionary<string, Button> rigthCellField = new();
+        Dictionary<string, Button> leftCellField = new();
+        Dictionary<string, Button> rigthCellField = new();
 
-        public MainForm()
+
+        public Form1()
         {
             Program.f = this;   // для использования в NetworkClass
 
@@ -306,7 +149,7 @@ namespace csbattleship
 
         bool checkBattle()
         {
-            if (this.currentParts != this.totalParts)
+            if (this.currentParts != totalParts)
             {
                 SendMessage("Не все корабли расставлены.");
                 return false;
@@ -368,12 +211,13 @@ namespace csbattleship
             {
                 Button cell = (Button)sender;
 
-                if (cell.Text == "1")
+                if (cell.Text == "1" && cell == setCoordsStack.Peek())
                 {
+                    setCoordsStack.Pop();
                     SetCellStatus(cell, 0);
                     this.currentParts -= 1;
                 }
-                else if (cell.Text == "0" && this.currentParts < this.totalParts)
+                else if (cell.Text == "0" && this.currentParts < totalParts)
                 {
                     if (CanSetShip(cell))
                     {
@@ -409,7 +253,7 @@ namespace csbattleship
                     this.horizontal = false;
                     this.vertical = false;
 
-                    UpdateLastCoords(cell);
+                    setCoordsStack.Push(cell);
                     return true;
                 }
 
@@ -420,7 +264,7 @@ namespace csbattleship
                         this.horizontal = true;
                         this.vertical = false;
 
-                        UpdateLastCoords(cell);
+                        setCoordsStack.Push(cell);
                         return true;
                     }
                     else if (IsCellClear(cell, 0, -1) == false || IsCellClear(cell, 0, +1) == false)
@@ -428,7 +272,7 @@ namespace csbattleship
                         this.vertical = true;
                         this.horizontal = false;
 
-                        UpdateLastCoords(cell);
+                        setCoordsStack.Push(cell);
                         return true;
                     }
                 }
@@ -437,27 +281,20 @@ namespace csbattleship
                     ((this.horizontal && (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false)) ||
                         (this.vertical && (IsCellClear(cell, 0, +1) == false || IsCellClear(cell, 0, -1) == false))))
                 {
-                    UpdateLastCoords(cell);
+                    setCoordsStack.Push(cell);
                     return true;
                 }
 
                 else if ((this.currentParts == 11 || this.currentParts == 13 || this.currentParts == 15) &&
                     (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false || IsCellClear(cell, 0, -1) == false || IsCellClear(cell, 0, +1) == false))
                 {
-                    UpdateLastCoords(cell);
+                    setCoordsStack.Push(cell);
                     return true;
                 }
             }
 
             SendMessage("Эта ячейка недоступна.");
             return false;
-        }
-
-        void UpdateLastCoords(Button cell)
-        {
-            this.last_set_coords = "";
-            this.last_set_coords += Convert.ToInt32(cell.Name[1].ToString());
-            this.last_set_coords += Convert.ToInt32(cell.Name[2].ToString());
         }
 
         bool IsNearLastCoords(Button cell)
@@ -470,7 +307,7 @@ namespace csbattleship
                     {
                         string iter_coords = $"{Convert.ToInt32(cell.Name[1].ToString()) + i}{Convert.ToInt32(cell.Name[2].ToString()) + j}";
 
-                        if (leftCellField[iter_coords].Text == "1" && $"{this.last_set_coords[0]}{this.last_set_coords[1]}" == iter_coords)
+                        if (leftCellField[iter_coords].Text == "1" && setCoordsStack.Peek().Name[1..] == iter_coords)
                         {
                             return true;
                         }
@@ -529,11 +366,12 @@ namespace csbattleship
 
         void ButtonSend_Click(object sender, EventArgs e)
         {
-            string text = textBoxInput.Text;
+            string text = textBoxInput.Text.Trim();
             if (text != "")
             {
                 textBoxInput.Clear();
-                SendMessage(text, "player");
+                this.transportData = text;
+                SendMessage(text, "me");
             }
 
         }
@@ -582,4 +420,5 @@ namespace csbattleship
             }    
         }
     }
+
 }

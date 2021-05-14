@@ -1,7 +1,7 @@
 
 namespace csbattleship
 {
-    partial class MainForm
+    partial class Form1
     {
         /// <summary>
         ///  Required designer variable.
@@ -409,7 +409,7 @@ namespace csbattleship
             this.buttonClear.UseVisualStyleBackColor = false;
             this.buttonClear.Click += new System.EventHandler(this.ButtonClear_Click);
             // 
-            // MainForm
+            // Form1
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
             this.AutoScroll = true;
@@ -419,7 +419,7 @@ namespace csbattleship
             this.ClientSize = new System.Drawing.Size(997, 489);
             this.Controls.Add(this.tableLayoutPaneBase);
             this.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.Name = "MainForm";
+            this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "battleship";
             this.Load += new System.EventHandler(this.Form1_Load);
