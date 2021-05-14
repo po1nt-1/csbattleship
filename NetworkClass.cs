@@ -9,7 +9,6 @@ namespace csbattleship
 {
     public class NetworkClass
     {
-        const int port = 8888;
         static TcpListener listener;
         public TcpClient client;
         NetworkStream stream = null;
@@ -20,38 +19,19 @@ namespace csbattleship
             client = tcpClient;
         }
 
-        public void Worker(string mode)
+        public void Worker(string socketType)
         {
             try
             {
-                if (ConnectionSuccessful(mode))
-                {
-                    Program.f.SetGameStatus(1);
-                }
-                else
-                {
-                    throw new Exception("Соединение не установлено");
-                }
+                ConnectionLoop(socketType);
 
-                byte[] data = new byte[64];
+                Program.f.SetGameStatus(1);
 
-                while (true)
-                {
-                    string message = Program.f.transportData;
-                    int bytes = 0;
-                    do
-                    {
-                        bytes = stream.Read(data, 0, data.Length);
-                        message += Encoding.UTF8.GetString(data, 0, bytes);
-                    }
-                    while (stream.DataAvailable);
+                StartBattleLoop(socketType);
 
-                    if (message.Length > 0)
-                    {
-                        data = Encoding.UTF8.GetBytes("[получено] " + message);
-                        stream.Write(data, 0, data.Length);
-                    }
-                }
+                Program.f.SetGameStatus(2);
+
+                ActionLoop(socketType);
             }
             catch (Exception ex)
             {
@@ -67,37 +47,106 @@ namespace csbattleship
             }
         }
 
-        bool ConnectionSuccessful(string mode)
+        void ConnectionLoop(string socketType)
         {
             try
             {
                 stream = client.GetStream();
                 byte[] data = new byte[64];
 
-                if (mode == "client")
+                if (socketType == "client")
                     data = Encoding.UTF8.GetBytes("client connect");
-                else if (mode == "server")
+                else if (socketType == "server")
                     data = Encoding.UTF8.GetBytes("server connect");
                 stream.Write(data, 0, data.Length);
 
                 int bytes = 0;
-                string message = "";
+                string response = "";
                 do
                 {
                     bytes = stream.Read(data, 0, data.Length);
-                    message += Encoding.UTF8.GetString(data, 0, bytes);
+                    response += Encoding.UTF8.GetString(data, 0, bytes);
                 }
                 while (stream.DataAvailable);
 
-                if (mode == "client" && message == "server connect" || 
-                    mode == "server" && message == "client connect")
-                    return true;
-
-                return false;
+                if (socketType == "client" && response != "server connect" ||
+                    socketType == "server" && response != "client connect")
+                    throw new Exception("Соединение не установлено");
             }
             catch (Exception)
             {
-                return false;
+                throw new Exception("Соединение не установлено");
+            }
+        }
+        // TODO: корректно завершать сокеты и потоки после закрытия программы
+        void StartBattleLoop(string socketType)
+        {
+            try
+            {
+                while (true)
+                {
+                    if (Program.f.readyForBattle)   // TODO: нет времени на расстановку кораблей
+                    {
+                        break;
+                    }
+                }
+
+                byte[] data = new byte[64];
+
+                if (socketType == "client")
+                    data = Encoding.UTF8.GetBytes("client ready");
+                else if (socketType == "server")
+                    data = Encoding.UTF8.GetBytes("server ready");
+                stream.Write(data, 0, data.Length); // TODO: слишком рано
+
+                int bytes = 0;
+                string response = "";
+                do
+                {
+                    bytes = stream.Read(data, 0, data.Length);
+                    response += Encoding.UTF8.GetString(data, 0, bytes);
+                }
+                while (stream.DataAvailable);
+
+                if (socketType == "client" && response != "server ready")
+                    throw new Exception("Что-то не так");
+                if (socketType == "server" && response != "client ready")
+                    throw new Exception("Что-то не так");
+            }
+            catch (Exception)
+            {
+                throw new Exception("Что-то не так");
+            }
+        }
+
+        void ActionLoop(string socketType)
+        {
+            while (true)
+            {
+                byte[] data = new byte[64];
+                string message = Program.f.SendNetData();
+                if (message != "[\"\",\"\"]")
+                {
+                    data = Encoding.UTF8.GetBytes(message);
+                    stream.Write(data, 0, data.Length);
+                }
+
+                int bytes = 0;
+                data = new byte[64];
+                message = "";
+
+                if (stream.DataAvailable)
+                {
+                    do
+                    {
+                        bytes = stream.Read(data, 0, data.Length);
+                        message += Encoding.UTF8.GetString(data, 0, bytes);
+                    }
+                    while (stream.DataAvailable);
+                        
+                    Program.f.RecieveNetData(message);
+                }
+
             }
         }
 

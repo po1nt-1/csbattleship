@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Net;
+using System.Text.Json;
 
 
 namespace csbattleship
@@ -28,11 +29,14 @@ namespace csbattleship
         bool vertical;
         bool horizontal;
 
-        Stack<Button> setCoordsStack = new(totalParts);
+        Stack<Button> shipCoords = new(totalParts);
 
-        public string transportData;
+        string serviceDataToSend = "";
+        string textDataToSend = "";
 
-        bool IsClient = true;
+        bool isClient = true;
+
+        public bool readyForBattle = false;
 
         Dictionary<string, Button> leftCellField = new();
         Dictionary<string, Button> rigthCellField = new();
@@ -101,7 +105,7 @@ namespace csbattleship
                 radioButtonClient.Enabled = radioButtonServer.Enabled = false;
                 buttonStart.Enabled = false;
 
-                if (this.IsClient)
+                if (this.isClient)
                 {
                     NetworkClass.Client();
                 }
@@ -112,7 +116,7 @@ namespace csbattleship
             }
             else if (gameStatus == 1 && checkBattle())
             {
-                SetGameStatus(2);                
+                this.readyForBattle = true;
             }
         }
 
@@ -158,6 +162,36 @@ namespace csbattleship
             return true;
         }
 
+        public string SendNetData()
+        {
+            List<string> comboData = new() { this.serviceDataToSend, this.textDataToSend };
+            this.serviceDataToSend = this.textDataToSend = "";
+
+            return JsonSerializer.Serialize(comboData);
+        }
+
+        public void RecieveNetData(string data)
+        {
+            Action action = () =>
+            {
+                List<string> comboData = JsonSerializer.Deserialize<List<string>>(data);
+
+                if (comboData[0] != "")
+                {
+                    SendMessage($"Попали в нашу ячейку {comboData[0]}!");
+                }
+                if (comboData[1] != "")
+                {
+                    SendMessage(comboData[1], "opponent");
+                }
+            };
+
+            if (InvokeRequired)
+                Invoke(action);
+            else
+                action();
+        }
+
         public void SetGameStatus(int newGameStatus)
         {
             Action action = () =>
@@ -177,6 +211,7 @@ namespace csbattleship
                     tableLayoutPanelMessage.Enabled = false;
                     buttonStart.Text = "Подключиться";
                     buttonStart.Enabled = true;
+                    this.readyForBattle = false;
                     SendMessage("gameStatus = 0");
                 }
                 else if (newGameStatus == 1)
@@ -211,9 +246,9 @@ namespace csbattleship
             {
                 Button cell = (Button)sender;
 
-                if (cell.Text == "1" && cell == setCoordsStack.Peek())
+                if (cell.Text == "1" && cell == shipCoords.Peek())
                 {
-                    setCoordsStack.Pop();
+                    shipCoords.Pop();
                     SetCellStatus(cell, 0);
                     this.currentParts -= 1;
                 }
@@ -232,7 +267,7 @@ namespace csbattleship
         {
             if (gameStatus == 2)
             {
-                this.transportData = $"{((Button)sender).Name}";
+                this.serviceDataToSend = $"{((Button)sender).Name}";
             }
         }
 
@@ -253,7 +288,7 @@ namespace csbattleship
                     this.horizontal = false;
                     this.vertical = false;
 
-                    setCoordsStack.Push(cell);
+                    shipCoords.Push(cell);
                     return true;
                 }
 
@@ -264,7 +299,7 @@ namespace csbattleship
                         this.horizontal = true;
                         this.vertical = false;
 
-                        setCoordsStack.Push(cell);
+                        shipCoords.Push(cell);
                         return true;
                     }
                     else if (IsCellClear(cell, 0, -1) == false || IsCellClear(cell, 0, +1) == false)
@@ -272,7 +307,7 @@ namespace csbattleship
                         this.vertical = true;
                         this.horizontal = false;
 
-                        setCoordsStack.Push(cell);
+                        shipCoords.Push(cell);
                         return true;
                     }
                 }
@@ -281,14 +316,14 @@ namespace csbattleship
                     ((this.horizontal && (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false)) ||
                         (this.vertical && (IsCellClear(cell, 0, +1) == false || IsCellClear(cell, 0, -1) == false))))
                 {
-                    setCoordsStack.Push(cell);
+                    shipCoords.Push(cell);
                     return true;
                 }
 
                 else if ((this.currentParts == 11 || this.currentParts == 13 || this.currentParts == 15) &&
                     (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false || IsCellClear(cell, 0, -1) == false || IsCellClear(cell, 0, +1) == false))
                 {
-                    setCoordsStack.Push(cell);
+                    shipCoords.Push(cell);
                     return true;
                 }
             }
@@ -307,7 +342,7 @@ namespace csbattleship
                     {
                         string iter_coords = $"{Convert.ToInt32(cell.Name[1].ToString()) + i}{Convert.ToInt32(cell.Name[2].ToString()) + j}";
 
-                        if (leftCellField[iter_coords].Text == "1" && setCoordsStack.Peek().Name[1..] == iter_coords)
+                        if (leftCellField[iter_coords].Text == "1" && shipCoords.Peek().Name[1..] == iter_coords)
                         {
                             return true;
                         }
@@ -370,7 +405,7 @@ namespace csbattleship
             if (text != "")
             {
                 textBoxInput.Clear();
-                this.transportData = text;
+                this.textDataToSend = text;
                 SendMessage(text, "me");
             }
 
@@ -404,17 +439,18 @@ namespace csbattleship
                 }
 
                 this.currentParts = 0;
+                shipCoords.Clear();
             }
         }
 
         private void radioButtonClient_CheckedChanged(object sender, EventArgs e)
         {
-            this.IsClient = !this.IsClient;
-            if (this.IsClient)
+            this.isClient = !this.isClient;
+            if (this.isClient)
             {
                 SendMessage("выбран Client");
             }
-            else if (!this.IsClient)
+            else if (!this.isClient)
             {
                 SendMessage("выбран Server");
             }    
