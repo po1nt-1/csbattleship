@@ -33,10 +33,12 @@ namespace csbattleship
 
         string serviceDataToSend = "";
         string textDataToSend = "";
+        string commandDataToSend = "";
 
         bool isClient = true;
 
-        public bool readyForBattle = false;
+        bool imReadyForBattle = false;
+        bool opponentReadyForBattle = false;
 
         Dictionary<string, Button> leftCellField = new();
         Dictionary<string, Button> rigthCellField = new();
@@ -51,8 +53,8 @@ namespace csbattleship
 
         void Form1_Load(object sender, EventArgs e)
         {
-            tableLayoutPanelLeft.BackColor = this.border_color;
-            tableLayoutPanelRigth.BackColor = this.border_color;
+            tableLayoutPanelLeft.BackColor = border_color;
+            tableLayoutPanelRigth.BackColor = border_color;
 
             for (int i = 0; i < 10; i++)
             {
@@ -99,28 +101,29 @@ namespace csbattleship
         
         void StartGame(object sender, EventArgs e)
         {
-            if (gameStatus == 0 && checkConnect())
+            if (gameStatus == 0 && CheckConnect())
             {
                 textBoxHost.Enabled = textBoxPort.Enabled = false;
                 radioButtonClient.Enabled = radioButtonServer.Enabled = false;
                 buttonStart.Enabled = false;
 
-                if (this.isClient)
-                {
+                if (isClient)
                     NetworkClass.Client();
-                }
                 else
-                {
                     NetworkClass.Server();
-                }
             }
-            else if (gameStatus == 1 && checkBattle())
+            else if (gameStatus == 1 && CheckBattle())
             {
-                this.readyForBattle = true;
+                imReadyForBattle = true;
+
+                if (isClient)
+                    commandDataToSend = "client ready";
+                else
+                    commandDataToSend = "server ready";
             }
         }
 
-        bool checkConnect()
+        bool CheckConnect()
         {
             if (textBoxHost.Text == "")
                 textBoxHost.Text = textBoxHost.PlaceholderText;
@@ -130,30 +133,41 @@ namespace csbattleship
             IPAddress ip;
             IPAddress.TryParse(textBoxHost.Text, out ip);
 
+            bool fail = false;
             if (ip is null)
             {
                 SendMessage("Не верно указан IP адресс.");
-                return false;
+                fail = true;
             }
             else if (int.TryParse(textBoxPort.Text, out _) == false)
             {
                 SendMessage("Не верно указан порт.");
-                return false;
+                fail = true;
             }
             else if (Convert.ToInt32(textBoxPort.Text) < 1000 || Convert.ToInt32(textBoxPort.Text) > Math.Pow(2, 16))
             {
                 SendMessage("Не верно указан порт.");
-                return false;
+                fail = true;
             }
+            
+            if (fail)
+            {
+                if (textBoxHost.Text == "127.0.0.1")
+                    textBoxHost.Text = "";
+                if (textBoxPort.Text == "7070")
+                    textBoxPort.Text = "";
 
-            this.host = textBoxHost.Text;
-            this.port = Convert.ToInt32(textBoxPort.Text);
+                return false;
+            }    
+
+            host = textBoxHost.Text;
+            port = Convert.ToInt32(textBoxPort.Text);
             return true;
         }
 
-        bool checkBattle()
+        bool CheckBattle()
         {
-            if (this.currentParts != totalParts)
+            if (currentParts != totalParts)
             {
                 SendMessage("Не все корабли расставлены.");
                 return false;
@@ -162,34 +176,50 @@ namespace csbattleship
             return true;
         }
 
-        public string SendNetData()
+        public string GetNetDataToSend()
         {
-            List<string> comboData = new() { this.serviceDataToSend, this.textDataToSend };
-            this.serviceDataToSend = this.textDataToSend = "";
+            List<string> comboData = new() { serviceDataToSend, textDataToSend, commandDataToSend };
+            serviceDataToSend = textDataToSend = commandDataToSend = "";
 
             return JsonSerializer.Serialize(comboData);
         }
-
-        public void RecieveNetData(string data)
+        
+        public void SetReceivedNetData(string data)
         {
-            Action action = () =>
+            try
             {
-                List<string> comboData = JsonSerializer.Deserialize<List<string>>(data);
-
-                if (comboData[0] != "")
+                Action action = () =>
                 {
-                    SendMessage($"Попали в нашу ячейку {comboData[0]}!");
-                }
-                if (comboData[1] != "")
-                {
-                    SendMessage(comboData[1], "opponent");
-                }
-            };
+                    List<string> comboData = JsonSerializer.Deserialize<List<string>>(data);
 
-            if (InvokeRequired)
-                Invoke(action);
-            else
-                action();
+                    if (comboData[0] != "")
+                    {
+                        SendMessage($"Попали в нашу ячейку {comboData[0]}!");
+                    }
+                    if (comboData[1] != "")
+                    {
+                        SendMessage(comboData[1], "opponent");
+                    }
+                    if (comboData[2] != "")
+                    {
+                        opponentReadyForBattle = true;
+                    }
+
+                    if (imReadyForBattle && opponentReadyForBattle)
+                    {
+                        SetGameStatus(2);
+                    }
+                };
+
+                if (InvokeRequired)
+                    Invoke(action);
+                else
+                    action();
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                SendMessage("Ошибка: слишком много сообщений");
+            }
         }
 
         public void SetGameStatus(int newGameStatus)
@@ -199,9 +229,9 @@ namespace csbattleship
                 if (newGameStatus == 0)
                 {
                     gameStatus = 0;
-                    if (this.host == "127.0.0.1")
+                    if (textBoxHost.Text == "127.0.0.1")
                         textBoxHost.Text = "";
-                    if (this.port == 7070)
+                    if (textBoxPort.Text == "7070")
                         textBoxPort.Text = "";
                     textBoxHost.Enabled = textBoxPort.Enabled = true;
                     radioButtonClient.Enabled = radioButtonServer.Enabled = true;
@@ -211,7 +241,8 @@ namespace csbattleship
                     tableLayoutPanelMessage.Enabled = false;
                     buttonStart.Text = "Подключиться";
                     buttonStart.Enabled = true;
-                    this.readyForBattle = false;
+                    imReadyForBattle = false;
+                    opponentReadyForBattle = false;
                     SendMessage("gameStatus = 0");
                 }
                 else if (newGameStatus == 1)
@@ -221,6 +252,8 @@ namespace csbattleship
                     tableLayoutPanelLeft.Enabled = true;
                     tableLayoutPanelMessage.Enabled = true;
                     buttonStart.Text = "В бой";
+                    imReadyForBattle = false;
+                    opponentReadyForBattle = false;
                     buttonStart.Enabled = true;
                     SendMessage("gameStatus = 1");
                 }
@@ -250,14 +283,14 @@ namespace csbattleship
                 {
                     shipCoords.Pop();
                     SetCellStatus(cell, 0);
-                    this.currentParts -= 1;
+                    currentParts -= 1;
                 }
-                else if (cell.Text == "0" && this.currentParts < totalParts)
+                else if (cell.Text == "0" && currentParts < totalParts)
                 {
                     if (CanSetShip(cell))
                     {
                         SetCellStatus(cell, 1);
-                        this.currentParts += 1;
+                        currentParts += 1;
                     }
                 }
             }
@@ -267,7 +300,7 @@ namespace csbattleship
         {
             if (gameStatus == 2)
             {
-                this.serviceDataToSend = $"{((Button)sender).Name}";
+                serviceDataToSend = $"{((Button)sender).Name}";
             }
         }
 
@@ -275,52 +308,52 @@ namespace csbattleship
         {
             if (IsCellClear(cell, -1, -1) && IsCellClear(cell, -1, +1) && IsCellClear(cell, +1, -1) && IsCellClear(cell, +1, +1))
             {
-                if ((this.currentParts == 5 || this.currentParts == 6 || this.currentParts == 8 || this.currentParts == 9
-                     || this.currentParts == 11 || this.currentParts == 13 || this.currentParts == 15) && IsNearLastCoords(cell) == false)
+                if ((currentParts == 5 || currentParts == 6 || currentParts == 8 || currentParts == 9
+                     || currentParts == 11 || currentParts == 13 || currentParts == 15) && IsNearLastCoords(cell) == false)
                 {
                     return false;
                 }
 
-                if ((this.currentParts == 0 || this.currentParts == 4 || this.currentParts == 7 || this.currentParts == 10 ||
-                    this.currentParts == 12 || this.currentParts == 14 || this.currentParts >= 16) &&
+                if ((currentParts == 0 || currentParts == 4 || currentParts == 7 || currentParts == 10 ||
+                    currentParts == 12 || currentParts == 14 || currentParts >= 16) &&
                     (IsCellClear(cell, -1, 0) && IsCellClear(cell, 0, -1) && IsCellClear(cell, 0, +1) && IsCellClear(cell, +1, 0)))
                 {
-                    this.horizontal = false;
-                    this.vertical = false;
+                    horizontal = false;
+                    vertical = false;
 
                     shipCoords.Push(cell);
                     return true;
                 }
 
-                else if (this.currentParts == 1 || this.currentParts == 5 || this.currentParts == 8)
+                else if (currentParts == 1 || currentParts == 5 || currentParts == 8)
                 {
                     if (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false)
                     {
-                        this.horizontal = true;
-                        this.vertical = false;
+                        horizontal = true;
+                        vertical = false;
 
                         shipCoords.Push(cell);
                         return true;
                     }
                     else if (IsCellClear(cell, 0, -1) == false || IsCellClear(cell, 0, +1) == false)
                     {
-                        this.vertical = true;
-                        this.horizontal = false;
+                        vertical = true;
+                        horizontal = false;
 
                         shipCoords.Push(cell);
                         return true;
                     }
                 }
 
-                else if ((this.currentParts == 2 || this.currentParts == 3 || this.currentParts == 6 || this.currentParts == 9) &&
-                    ((this.horizontal && (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false)) ||
-                        (this.vertical && (IsCellClear(cell, 0, +1) == false || IsCellClear(cell, 0, -1) == false))))
+                else if ((currentParts == 2 || currentParts == 3 || currentParts == 6 || currentParts == 9) &&
+                    ((horizontal && (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false)) ||
+                        (vertical && (IsCellClear(cell, 0, +1) == false || IsCellClear(cell, 0, -1) == false))))
                 {
                     shipCoords.Push(cell);
                     return true;
                 }
 
-                else if ((this.currentParts == 11 || this.currentParts == 13 || this.currentParts == 15) &&
+                else if ((currentParts == 11 || currentParts == 13 || currentParts == 15) &&
                     (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false || IsCellClear(cell, 0, -1) == false || IsCellClear(cell, 0, +1) == false))
                 {
                     shipCoords.Push(cell);
@@ -362,23 +395,23 @@ namespace csbattleship
             // Левое поле
             if (status == 0)    // пусто
             {
-                cell.BackColor = this.sea_color;
+                cell.BackColor = sea_color;
                 cell.Text = "0";
             }
             else if (status == 1)   // целый
             {
-                cell.BackColor = this.ship_color;
+                cell.BackColor = ship_color;
                 cell.Text = "1";
             }
             // Правое поле
             else if (status == 2)   // промах
             {
-                cell.BackColor = this.miss_color;
+                cell.BackColor = miss_color;
                 cell.Text = "2";
             }
             else if (status == 3)   // попадание
             {
-                cell.BackColor = this.hit_color;
+                cell.BackColor = hit_color;
                 cell.Text = "3";
             }
         }
@@ -405,7 +438,7 @@ namespace csbattleship
             if (text != "")
             {
                 textBoxInput.Clear();
-                this.textDataToSend = text;
+                textDataToSend = text;
                 SendMessage(text, "me");
             }
 
@@ -438,19 +471,19 @@ namespace csbattleship
                     SetCellStatus(cell, 0);
                 }
 
-                this.currentParts = 0;
+                currentParts = 0;
                 shipCoords.Clear();
             }
         }
 
         private void radioButtonClient_CheckedChanged(object sender, EventArgs e)
         {
-            this.isClient = !this.isClient;
-            if (this.isClient)
+            isClient = !isClient;
+            if (isClient)
             {
                 SendMessage("выбран Client");
             }
-            else if (!this.isClient)
+            else if (!isClient)
             {
                 SendMessage("выбран Server");
             }    
