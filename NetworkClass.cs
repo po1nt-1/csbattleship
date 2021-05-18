@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -13,9 +14,15 @@ namespace csbattleship
         public TcpClient client;
         NetworkStream stream = null;
 
+        CancellationTokenSource cancelTokenSource;
+        CancellationToken token;
+
         public NetworkClass(TcpClient tcpClient)
         {
             client = tcpClient;
+
+            cancelTokenSource = new CancellationTokenSource();
+            token = cancelTokenSource.Token;
         }
 
         void Worker(string socketType)
@@ -33,6 +40,8 @@ namespace csbattleship
                     stream.Close();
                 if (client != null)
                     client.Close();
+
+                cancelTokenSource.Cancel();
             }
         }
 
@@ -68,11 +77,10 @@ namespace csbattleship
             }
             catch (Exception)
             {
+                cancelTokenSource.Cancel();
                 throw new Exception("Соединение не установлено");
             }
         }
-
-        // TODO: корректно завершать сокеты и потоки после закрытия программы.
 
         void ActionLoop()
         {
@@ -80,12 +88,17 @@ namespace csbattleship
             {
                 while (true)
                 {
+                    if (token.IsCancellationRequested)
+                        throw new Exception("Передача сообщений прекращена");
+
                     byte[] data;
                     string message = Program.f.GetNetDataToSend();
+                    bool flag = false;
                     if (message != "[\"\",\"\",\"\"]")
                     {
                         data = Encoding.UTF8.GetBytes(message);
                         stream.Write(data, 0, data.Length);
+                        flag = true;
                     }
 
                     int bytes;
@@ -102,10 +115,21 @@ namespace csbattleship
 
                         Program.f.SetReceivedNetData(message);
                     }
+
+                    if (flag && Program.f.textDataToSend != "")
+                    {
+                        Program.f.SendMessage(Program.f.textDataToSend, "me");
+                        Program.f.textDataToSend = "";
+                    }
                 }
             }
             catch (Exception)
             {
+                Program.f.SetGameStatus(0);
+                cancelTokenSource.Cancel();
+                if (listener != null)
+                    listener.Stop();
+
                 throw new Exception("Передача сообщений прекращена");
             }
         }
@@ -126,6 +150,9 @@ namespace csbattleship
                 {
                     Program.f.SendMessage(ex.Message);
                     Program.f.SetGameStatus(0);
+
+                    if (listener != null)
+                        listener.Stop();
                 }
             }).Start();
         }

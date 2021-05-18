@@ -32,7 +32,7 @@ namespace csbattleship
         Stack<Button> shipCoords = new(totalParts);
 
         string serviceDataToSend = "";
-        string textDataToSend = "";
+        public string textDataToSend = "";
         string commandDataToSend = "";
 
         bool isClient = true;
@@ -179,7 +179,7 @@ namespace csbattleship
         public string GetNetDataToSend()
         {
             List<string> comboData = new() { serviceDataToSend, textDataToSend, commandDataToSend };
-            serviceDataToSend = textDataToSend = commandDataToSend = "";
+            serviceDataToSend = commandDataToSend = "";
 
             return JsonSerializer.Serialize(comboData);
         }
@@ -207,7 +207,11 @@ namespace csbattleship
 
                     if (imReadyForBattle && opponentReadyForBattle)
                     {
+                        commandDataToSend = "special code";
+
                         SetGameStatus(2);
+                        imReadyForBattle = false;
+                        opponentReadyForBattle = false;
                     }
                 };
 
@@ -439,7 +443,6 @@ namespace csbattleship
             {
                 textBoxInput.Clear();
                 textDataToSend = text;
-                SendMessage(text, "me");
             }
 
         }
