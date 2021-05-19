@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Windows.Forms;
 using System.Net;
 using System.Text.Json;
+using System.Windows.Forms;
 
 
 namespace csbattleship
@@ -17,34 +17,32 @@ namespace csbattleship
         readonly Color miss_color = Color.FromArgb(40, 60, 130);
         readonly Color hit_color = Color.FromArgb(105, 15, 0);
 
+        bool isClient = true;
+        int gameStatus = 0;
+
         public string host = "127.0.0.1";
         public int port = 7070;
-
-        int gameStatus = 0;
 
         // Ячейки кораблей
         const int totalParts = 20;
         int currentParts = 0;
         int aliveParts = totalParts;
-
-        bool lost = false;
-
         bool vertical;
         bool horizontal;
 
-        string actionDataToSend = "";
-        public string textDataToSend = "";
-        string commandDataToSend = "";
+        bool myTurn;
+        bool endOfGame = false;        
 
-        bool isClient = true;
+        string coordsToSend = "";
+        public string messageToSend = "";
+        string commandToSend = "";
 
         bool imReadyForBattle = false;
         bool enemyReadyForBattle = false;
 
-        Stack<Button> shipCoords = new(totalParts);
-
         Dictionary<string, Button> leftCellField = new();
         Dictionary<string, Button> rigthCellField = new();
+        Stack<Button> shipCoords = new(totalParts);
 
 
         public Form1()
@@ -101,7 +99,7 @@ namespace csbattleship
             tableLayoutPanelRigth.Enabled = false;
             tableLayoutPanelMessage.Enabled = false;
         }
-        
+
         void StartGame(object sender, EventArgs e)
         {
             if (gameStatus == 0 && CheckConnect())
@@ -111,18 +109,24 @@ namespace csbattleship
                 buttonStart.Enabled = false;
 
                 if (isClient)
+                {
+                    myTurn = false;
                     NetworkClass.Client();
+                }
                 else
+                {
+                    myTurn = true;
                     NetworkClass.Server();
+                }
             }
             else if (gameStatus == 1 && CheckBattle())
             {
                 imReadyForBattle = true;
 
                 if (isClient)
-                    commandDataToSend = "client ready";
+                    commandToSend = "client ready";
                 else
-                    commandDataToSend = "server ready";
+                    commandToSend = "server ready";
             }
         }
 
@@ -152,7 +156,7 @@ namespace csbattleship
                 SendMessage("Не верно указан порт.");
                 fail = true;
             }
-            
+
             if (fail)
             {
                 if (textBoxHost.Text == "127.0.0.1")
@@ -161,7 +165,7 @@ namespace csbattleship
                     textBoxPort.Text = "";
 
                 return false;
-            }    
+            }
 
             host = textBoxHost.Text;
             port = Convert.ToInt32(textBoxPort.Text);
@@ -181,18 +185,18 @@ namespace csbattleship
 
         public string GetNetDataToSend()
         {
-            List<string> comboData = new() { actionDataToSend, textDataToSend, commandDataToSend };
-            actionDataToSend = commandDataToSend = "";
+            List<string> comboData = new() { coordsToSend, messageToSend, commandToSend };
+            coordsToSend = commandToSend = "";
 
-            if (lost)
+            if (endOfGame)
             {
-                commandDataToSend = "lose";
-                lost = false;
+                commandToSend = "end of game";
+                endOfGame = false;
             }
 
             return JsonSerializer.Serialize(comboData);
         }
-        
+
         public void ViewReceivedNetData(string data)
         {
             try
@@ -203,7 +207,6 @@ namespace csbattleship
 
                     if (comboData[0] != "")
                     {
-                        SendMessage($"Атакован на {comboData[0]}.");
                         processEnemyAction(comboData[0]);
                     }
 
@@ -214,7 +217,7 @@ namespace csbattleship
 
                     if (comboData[2] != "")
                     {
-                        if (comboData[2] == "lose")
+                        if (comboData[2] == "end of game")
                         {
                             SendMessage("Победа");
                             SetGameStatus(1);
@@ -231,8 +234,9 @@ namespace csbattleship
                             {
                                 Button cell = rigthCellField[comboData[2].Substring(0, 2)];
                                 SetCellStatus(cell, 3);
+                                myTurn = !myTurn;
                             }
-                            if (comboData[2][2..] == "miss")
+                            else if (comboData[2][2..] == "miss")
                             {
                                 Button cell = rigthCellField[comboData[2].Substring(0, 2)];
                                 SetCellStatus(cell, 2);
@@ -242,7 +246,7 @@ namespace csbattleship
 
                     if (imReadyForBattle && enemyReadyForBattle)
                     {
-                        commandDataToSend = "special code for start battle";
+                        commandToSend = "special code for start battle";
                         SetGameStatus(2);
 
                         imReadyForBattle = enemyReadyForBattle = false;
@@ -266,12 +270,12 @@ namespace csbattleship
             if (cell.Text == "1")
             {
                 SetCellStatus(cell, 3);
-                commandDataToSend = $"{coords}hit";
+                commandToSend = $"{coords}hit";
                 aliveParts -= 1;
 
                 if (aliveParts == 0)
                 {
-                    lost = true;
+                    endOfGame = true;
                     SendMessage("Поражение");
                     SetGameStatus(1);
                 }
@@ -279,7 +283,8 @@ namespace csbattleship
             else if (cell.Text == "0")
             {
                 SetCellStatus(cell, 2);
-                commandDataToSend = $"{coords}miss";
+                commandToSend = $"{coords}miss";
+                myTurn = !myTurn;
             }
         }
 
@@ -304,7 +309,6 @@ namespace csbattleship
                     buttonStart.Enabled = true;
                     imReadyForBattle = false;
                     enemyReadyForBattle = false;
-                    SendMessage("gameStatus = 0");
                 }
                 else if (newGameStatus == 1)
                 {
@@ -319,16 +323,14 @@ namespace csbattleship
                     imReadyForBattle = false;
                     enemyReadyForBattle = false;
                     buttonStart.Enabled = true;
-                    SendMessage("gameStatus = 1");
                 }
                 else if (newGameStatus == 2)
                 {
                     gameStatus = 2;
                     tableLayoutPanelLeft.Enabled = buttonClear.Enabled = buttonStart.Enabled = false;
                     tableLayoutPanelRigth.Enabled = true;
-                    lost = false;
+                    endOfGame = false;
                     aliveParts = 20;
-                    SendMessage("gameStatus = 2");
                 }
             };
 
@@ -365,9 +367,11 @@ namespace csbattleship
         void RigthCellField_Click(object sender, EventArgs e)
         {
             Button cell = (Button)sender;
-            if (gameStatus == 2 && cell.Text == "0")
+            if (gameStatus == 2 && cell.Text == "0" && myTurn)
             {
-                actionDataToSend = $"{((Button)sender).Name[1..]}";
+                myTurn = !myTurn;
+
+                coordsToSend = $"{((Button)sender).Name[1..]}";
             }
         }
 
@@ -428,7 +432,6 @@ namespace csbattleship
                 }
             }
 
-            SendMessage("Эта ячейка недоступна.");
             return false;
         }
 
@@ -505,12 +508,12 @@ namespace csbattleship
             if (text != "")
             {
                 textBoxInput.Clear();
-                textDataToSend = text;
+                messageToSend = text;
             }
 
         }
 
-        public void SendMessage(string text, string from = "sys")
+        public void SendMessage(string text, string from = "Система")
         {
             Action action = () =>
             {
@@ -562,7 +565,7 @@ namespace csbattleship
             else if (!isClient)
             {
                 SendMessage("выбран Server");
-            }    
+            }
         }
     }
 

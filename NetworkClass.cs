@@ -69,7 +69,7 @@ namespace csbattleship
 
                 if (socketType == "client" && response != "server connect" ||
                     socketType == "server" && response != "client connect")
-                    throw new Exception("Соединение не установлено");
+                    throw new Exception("");
 
                 Task.Run(ActionLoop);
 
@@ -89,7 +89,7 @@ namespace csbattleship
                 while (true)
                 {
                     if (token.IsCancellationRequested)
-                        throw new Exception("Передача сообщений прекращена");
+                        throw new Exception("");
 
                     byte[] data;
                     string message = Program.f.GetNetDataToSend();
@@ -116,22 +116,22 @@ namespace csbattleship
                         Program.f.ViewReceivedNetData(message);
                     }
 
-                    if (flag && Program.f.textDataToSend != "")
+                    if (flag && Program.f.messageToSend != "")
                     {
-                        Program.f.SendMessage(Program.f.textDataToSend, "me");
-                        Program.f.textDataToSend = "";
+                        Program.f.SendMessage(Program.f.messageToSend, "me");
+                        Program.f.messageToSend = "";
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Program.f.SendMessage(ex.Message);
+                Program.f.SendMessage("Соединение разорвано");
                 Program.f.SetGameStatus(0);
                 cancelTokenSource.Cancel();
                 if (listener != null)
                     listener.Stop();
 
-                throw new Exception("Передача сообщений прекращена");
+                throw new Exception("Соединение разорвано");
             }
         }
 
