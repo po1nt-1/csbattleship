@@ -81,7 +81,7 @@ namespace csbattleship
                 throw new Exception("Соединение не установлено");
             }
         }
-
+        
         void ActionLoop()
         {
             try
@@ -113,7 +113,7 @@ namespace csbattleship
                         }
                         while (stream.DataAvailable);
 
-                        Program.f.SetReceivedNetData(message);
+                        Program.f.ViewReceivedNetData(message);
                     }
 
                     if (flag && Program.f.textDataToSend != "")
@@ -123,8 +123,9 @@ namespace csbattleship
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Program.f.SendMessage(ex.Message);
                 Program.f.SetGameStatus(0);
                 cancelTokenSource.Cancel();
                 if (listener != null)

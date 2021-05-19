@@ -13,9 +13,9 @@ namespace csbattleship
         // Настройки цвета
         readonly Color border_color = Color.FromArgb(14, 40, 120);
         readonly Color sea_color = Color.FromArgb(15, 45, 135);
-        readonly Color ship_color = Color.FromArgb(19, 19, 19);
-        readonly Color miss_color = Color.FromArgb(40, 50, 80);
-        readonly Color hit_color = Color.FromArgb(40, 50, 80);
+        readonly Color ship_color = Color.FromArgb(20, 20, 20);
+        readonly Color miss_color = Color.FromArgb(40, 60, 130);
+        readonly Color hit_color = Color.FromArgb(105, 15, 0);
 
         public string host = "127.0.0.1";
         public int port = 7070;
@@ -23,22 +23,25 @@ namespace csbattleship
         int gameStatus = 0;
 
         // Ячейки кораблей
-        int currentParts = 0;
         const int totalParts = 20;
+        int currentParts = 0;
+        int aliveParts = totalParts;
+
+        bool lost = false;
 
         bool vertical;
         bool horizontal;
 
-        Stack<Button> shipCoords = new(totalParts);
-
-        string serviceDataToSend = "";
+        string actionDataToSend = "";
         public string textDataToSend = "";
         string commandDataToSend = "";
 
         bool isClient = true;
 
         bool imReadyForBattle = false;
-        bool opponentReadyForBattle = false;
+        bool enemyReadyForBattle = false;
+
+        Stack<Button> shipCoords = new(totalParts);
 
         Dictionary<string, Button> leftCellField = new();
         Dictionary<string, Button> rigthCellField = new();
@@ -178,13 +181,19 @@ namespace csbattleship
 
         public string GetNetDataToSend()
         {
-            List<string> comboData = new() { serviceDataToSend, textDataToSend, commandDataToSend };
-            serviceDataToSend = commandDataToSend = "";
+            List<string> comboData = new() { actionDataToSend, textDataToSend, commandDataToSend };
+            actionDataToSend = commandDataToSend = "";
+
+            if (lost)
+            {
+                commandDataToSend = "lose";
+                lost = false;
+            }
 
             return JsonSerializer.Serialize(comboData);
         }
         
-        public void SetReceivedNetData(string data)
+        public void ViewReceivedNetData(string data)
         {
             try
             {
@@ -194,24 +203,49 @@ namespace csbattleship
 
                     if (comboData[0] != "")
                     {
-                        SendMessage($"Попали в нашу ячейку {comboData[0]}!");
+                        SendMessage($"Атакован на {comboData[0]}.");
+                        processEnemyAction(comboData[0]);
                     }
+
                     if (comboData[1] != "")
                     {
-                        SendMessage(comboData[1], "opponent");
+                        SendMessage(comboData[1], "enemy");
                     }
+
                     if (comboData[2] != "")
                     {
-                        opponentReadyForBattle = true;
+                        if (comboData[2] == "lose")
+                        {
+                            SendMessage("Победа");
+                            SetGameStatus(1);
+                            return;
+                        }
+
+                        if (comboData[2] == "client ready" || comboData[2] == "server ready")
+                        {
+                            enemyReadyForBattle = true;
+                        }
+                        else
+                        {
+                            if (comboData[2][2..] == "hit")
+                            {
+                                Button cell = rigthCellField[comboData[2].Substring(0, 2)];
+                                SetCellStatus(cell, 3);
+                            }
+                            if (comboData[2][2..] == "miss")
+                            {
+                                Button cell = rigthCellField[comboData[2].Substring(0, 2)];
+                                SetCellStatus(cell, 2);
+                            }
+                        }
                     }
 
-                    if (imReadyForBattle && opponentReadyForBattle)
+                    if (imReadyForBattle && enemyReadyForBattle)
                     {
-                        commandDataToSend = "special code";
-
+                        commandDataToSend = "special code for start battle";
                         SetGameStatus(2);
-                        imReadyForBattle = false;
-                        opponentReadyForBattle = false;
+
+                        imReadyForBattle = enemyReadyForBattle = false;
                     }
                 };
 
@@ -220,9 +254,32 @@ namespace csbattleship
                 else
                     action();
             }
-            catch (System.Text.Json.JsonException)
+            catch (JsonException)
             {
                 SendMessage("Ошибка: слишком много сообщений");
+            }
+        }
+
+        void processEnemyAction(string coords)
+        {
+            Button cell = leftCellField[coords];
+            if (cell.Text == "1")
+            {
+                SetCellStatus(cell, 3);
+                commandDataToSend = $"{coords}hit";
+                aliveParts -= 1;
+
+                if (aliveParts == 0)
+                {
+                    lost = true;
+                    SendMessage("Поражение");
+                    SetGameStatus(1);
+                }
+            }
+            else if (cell.Text == "0")
+            {
+                SetCellStatus(cell, 2);
+                commandDataToSend = $"{coords}miss";
             }
         }
 
@@ -246,18 +303,21 @@ namespace csbattleship
                     buttonStart.Text = "Подключиться";
                     buttonStart.Enabled = true;
                     imReadyForBattle = false;
-                    opponentReadyForBattle = false;
+                    enemyReadyForBattle = false;
                     SendMessage("gameStatus = 0");
                 }
                 else if (newGameStatus == 1)
                 {
+                    ClearMap();
+
                     gameStatus = 1;
                     buttonClear.Enabled = true;
                     tableLayoutPanelLeft.Enabled = true;
+                    tableLayoutPanelRigth.Enabled = false;
                     tableLayoutPanelMessage.Enabled = true;
-                    buttonStart.Text = "В бой";
+                    buttonStart.Text = "Готов";
                     imReadyForBattle = false;
-                    opponentReadyForBattle = false;
+                    enemyReadyForBattle = false;
                     buttonStart.Enabled = true;
                     SendMessage("gameStatus = 1");
                 }
@@ -266,6 +326,8 @@ namespace csbattleship
                     gameStatus = 2;
                     tableLayoutPanelLeft.Enabled = buttonClear.Enabled = buttonStart.Enabled = false;
                     tableLayoutPanelRigth.Enabled = true;
+                    lost = false;
+                    aliveParts = 20;
                     SendMessage("gameStatus = 2");
                 }
             };
@@ -302,9 +364,10 @@ namespace csbattleship
 
         void RigthCellField_Click(object sender, EventArgs e)
         {
-            if (gameStatus == 2)
+            Button cell = (Button)sender;
+            if (gameStatus == 2 && cell.Text == "0")
             {
-                serviceDataToSend = $"{((Button)sender).Name}";
+                actionDataToSend = $"{((Button)sender).Name[1..]}";
             }
         }
 
@@ -469,17 +532,27 @@ namespace csbattleship
         {
             if (gameStatus == 1)
             {
-                foreach (Button cell in tableLayoutPanelLeft.Controls)
-                {
-                    SetCellStatus(cell, 0);
-                }
-
-                currentParts = 0;
-                shipCoords.Clear();
+                ClearMap();
             }
         }
 
-        private void radioButtonClient_CheckedChanged(object sender, EventArgs e)
+        void ClearMap()
+        {
+            foreach (Button cell in tableLayoutPanelLeft.Controls)
+            {
+                SetCellStatus(cell, 0);
+            }
+
+            foreach (Button cell in tableLayoutPanelRigth.Controls)
+            {
+                SetCellStatus(cell, 0);
+            }
+
+            currentParts = 0;
+            shipCoords.Clear();
+        }
+
+        void radioButtonClient_CheckedChanged(object sender, EventArgs e)
         {
             isClient = !isClient;
             if (isClient)
