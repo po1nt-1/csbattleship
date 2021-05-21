@@ -122,6 +122,9 @@ namespace csbattleship
             else if (gameStatus == 1 && CheckBattle())
             {
                 imReadyForBattle = true;
+                buttonStart.Enabled = false;
+                if (enemyReadyForBattle == false)
+                    SendMessage("Ожидание соперника.");
 
                 if (isClient)
                     commandToSend = "client ready";
@@ -185,14 +188,14 @@ namespace csbattleship
 
         public string GetNetDataToSend()
         {
-            List<string> comboData = new() { coordsToSend, messageToSend, commandToSend };
-            coordsToSend = commandToSend = "";
-
             if (endOfGame)
             {
                 commandToSend = "end of game";
                 endOfGame = false;
             }
+
+            List<string> comboData = new() { coordsToSend, messageToSend, commandToSend };
+            coordsToSend = commandToSend = "";
 
             return JsonSerializer.Serialize(comboData);
         }
@@ -217,16 +220,16 @@ namespace csbattleship
 
                     if (comboData[2] != "")
                     {
-                        if (comboData[2] == "end of game")
+                        if (comboData[2] == "end of game")  // TODO: не работает
                         {
                             SendMessage("Победа");
                             SetGameStatus(1);
                             return;
                         }
-
-                        if (comboData[2] == "client ready" || comboData[2] == "server ready")
+                        else if (comboData[2] == "client ready" || comboData[2] == "server ready")
                         {
                             enemyReadyForBattle = true;
+                            SendMessage("Соперник готов к бою.");
                         }
                         else
                         {
@@ -275,9 +278,9 @@ namespace csbattleship
 
                 if (aliveParts == 0)
                 {
-                    endOfGame = true;
-                    SendMessage("Поражение");
                     SetGameStatus(1);
+                    SendMessage("Поражение");
+                    endOfGame = true;
                 }
             }
             else if (cell.Text == "0")
@@ -294,6 +297,8 @@ namespace csbattleship
             {
                 if (newGameStatus == 0)
                 {
+                    ClearMap();
+
                     gameStatus = 0;
                     if (textBoxHost.Text == "127.0.0.1")
                         textBoxHost.Text = "";
@@ -323,6 +328,8 @@ namespace csbattleship
                     imReadyForBattle = false;
                     enemyReadyForBattle = false;
                     buttonStart.Enabled = true;
+                    aliveParts = 20;
+                    SendMessage("Подготовка к бою.");
                 }
                 else if (newGameStatus == 2)
                 {
@@ -331,6 +338,7 @@ namespace csbattleship
                     tableLayoutPanelRigth.Enabled = true;
                     endOfGame = false;
                     aliveParts = 20;
+                    SendMessage("Бой начинается.");
                 }
             };
 
@@ -371,7 +379,7 @@ namespace csbattleship
             {
                 myTurn = !myTurn;
 
-                coordsToSend = $"{((Button)sender).Name[1..]}";
+                coordsToSend = $"{cell.Name[1..]}";
             }
         }
 
@@ -513,7 +521,7 @@ namespace csbattleship
 
         }
 
-        public void SendMessage(string text, string from = "Система")
+        public void SendMessage(string text, string from = "#")
         {
             Action action = () =>
             {
@@ -558,14 +566,6 @@ namespace csbattleship
         void radioButtonClient_CheckedChanged(object sender, EventArgs e)
         {
             isClient = !isClient;
-            if (isClient)
-            {
-                SendMessage("выбран Client");
-            }
-            else if (!isClient)
-            {
-                SendMessage("выбран Server");
-            }
         }
     }
 

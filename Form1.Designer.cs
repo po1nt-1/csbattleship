@@ -136,7 +136,7 @@ namespace csbattleship
             // 
             this.listBoxChat.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.listBoxChat.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBoxChat.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.listBoxChat.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.listBoxChat.FormattingEnabled = true;
             this.listBoxChat.HorizontalScrollbar = true;
             this.listBoxChat.ItemHeight = 16;
