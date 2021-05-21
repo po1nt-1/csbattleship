@@ -111,11 +111,13 @@ namespace csbattleship
                 if (isClient)
                 {
                     myTurn = false;
+                    ChangeTurnStatus();
                     NetworkClass.Client();
                 }
                 else
                 {
                     myTurn = true;
+                    ChangeTurnStatus();
                     NetworkClass.Server();
                 }
             }
@@ -162,9 +164,9 @@ namespace csbattleship
 
             if (fail)
             {
-                if (textBoxHost.Text == "127.0.0.1")
+                if (textBoxHost.Text == textBoxHost.PlaceholderText)
                     textBoxHost.Text = "";
-                if (textBoxPort.Text == "7070")
+                if (textBoxPort.Text == textBoxPort.PlaceholderText)
                     textBoxPort.Text = "";
 
                 return false;
@@ -238,6 +240,7 @@ namespace csbattleship
                                 Button cell = rigthCellField[comboData[2].Substring(0, 2)];
                                 SetCellStatus(cell, 3);
                                 myTurn = !myTurn;
+                                ChangeTurnStatus();
                             }
                             else if (comboData[2][2..] == "miss")
                             {
@@ -288,6 +291,7 @@ namespace csbattleship
                 SetCellStatus(cell, 2);
                 commandToSend = $"{coords}miss";
                 myTurn = !myTurn;
+                ChangeTurnStatus();
             }
         }
 
@@ -300,9 +304,9 @@ namespace csbattleship
                     ClearMap();
 
                     gameStatus = 0;
-                    if (textBoxHost.Text == "127.0.0.1")
+                    if (textBoxHost.Text == textBoxHost.PlaceholderText)
                         textBoxHost.Text = "";
-                    if (textBoxPort.Text == "7070")
+                    if (textBoxPort.Text == textBoxPort.PlaceholderText)
                         textBoxPort.Text = "";
                     textBoxHost.Enabled = textBoxPort.Enabled = true;
                     radioButtonClient.Enabled = radioButtonServer.Enabled = true;
@@ -310,6 +314,7 @@ namespace csbattleship
                     tableLayoutPanelLeft.Enabled = false;
                     tableLayoutPanelRigth.Enabled = false;
                     tableLayoutPanelMessage.Enabled = false;
+                    turnStatus.Visible = false;
                     buttonStart.Text = "Подключиться";
                     buttonStart.Enabled = true;
                     imReadyForBattle = false;
@@ -324,6 +329,7 @@ namespace csbattleship
                     tableLayoutPanelLeft.Enabled = true;
                     tableLayoutPanelRigth.Enabled = false;
                     tableLayoutPanelMessage.Enabled = true;
+                    turnStatus.Visible = true;
                     buttonStart.Text = "Готов";
                     imReadyForBattle = false;
                     enemyReadyForBattle = false;
@@ -336,6 +342,7 @@ namespace csbattleship
                     gameStatus = 2;
                     tableLayoutPanelLeft.Enabled = buttonClear.Enabled = buttonStart.Enabled = false;
                     tableLayoutPanelRigth.Enabled = true;
+                    turnStatus.Visible = true;
                     endOfGame = false;
                     aliveParts = 20;
                     SendMessage("Бой начинается.");
@@ -378,6 +385,7 @@ namespace csbattleship
             if (gameStatus == 2 && cell.Text == "0" && myTurn)
             {
                 myTurn = !myTurn;
+                ChangeTurnStatus();
 
                 coordsToSend = $"{cell.Name[1..]}";
             }
@@ -566,6 +574,23 @@ namespace csbattleship
         void radioButtonClient_CheckedChanged(object sender, EventArgs e)
         {
             isClient = !isClient;
+            if (isClient)
+                textBoxHost.PlaceholderText = "127.0.0.1";
+            else
+                textBoxHost.PlaceholderText = "0.0.0.0";
+        }
+
+        void ChangeTurnStatus()
+        {
+            if (myTurn)
+            {
+                turnStatus.Image = Properties.Resources.green;
+            }
+            else
+            {
+                turnStatus.Image = Properties.Resources.red;
+            }
+
         }
     }
 

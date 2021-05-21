@@ -48,6 +48,7 @@ namespace csbattleship
             this.textBoxPort = new System.Windows.Forms.TextBox();
             this.textBoxHost = new System.Windows.Forms.TextBox();
             this.tableLayoutPanelButtons = new System.Windows.Forms.TableLayoutPanel();
+            this.turnStatus = new System.Windows.Forms.Label();
             this.buttonClear = new System.Windows.Forms.Button();
             this.tableLayoutPanelLower.SuspendLayout();
             this.tableLayoutPanelChat.SuspendLayout();
@@ -136,10 +137,12 @@ namespace csbattleship
             // 
             this.listBoxChat.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.listBoxChat.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBoxChat.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.listBoxChat.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.listBoxChat.FormattingEnabled = true;
             this.listBoxChat.HorizontalScrollbar = true;
             this.listBoxChat.ItemHeight = 16;
+            this.listBoxChat.Items.AddRange(new object[] {
+            " "});
             this.listBoxChat.Location = new System.Drawing.Point(0, 0);
             this.listBoxChat.Margin = new System.Windows.Forms.Padding(0);
             this.listBoxChat.Name = "listBoxChat";
@@ -166,13 +169,13 @@ namespace csbattleship
             // 
             this.textBoxInput.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.textBoxInput.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.textBoxInput.Location = new System.Drawing.Point(3, 13);
+            this.textBoxInput.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.textBoxInput.Location = new System.Drawing.Point(3, 14);
             this.textBoxInput.Margin = new System.Windows.Forms.Padding(0);
             this.textBoxInput.MaxLength = 150;
             this.textBoxInput.Name = "textBoxInput";
             this.textBoxInput.PlaceholderText = "Сообщение..";
-            this.textBoxInput.Size = new System.Drawing.Size(136, 24);
+            this.textBoxInput.Size = new System.Drawing.Size(136, 22);
             this.textBoxInput.TabIndex = 2;
             // 
             // buttonSend
@@ -227,15 +230,13 @@ namespace csbattleship
             // buttonStart
             // 
             this.buttonStart.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.buttonStart.AutoSize = true;
-            this.buttonStart.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.buttonStart.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buttonStart.Font = new System.Drawing.Font("Arial", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.buttonStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.buttonStart.ForeColor = System.Drawing.Color.Black;
-            this.buttonStart.Location = new System.Drawing.Point(0, 0);
+            this.buttonStart.Location = new System.Drawing.Point(51, 0);
             this.buttonStart.Margin = new System.Windows.Forms.Padding(0);
             this.buttonStart.Name = "buttonStart";
-            this.buttonStart.Size = new System.Drawing.Size(120, 29);
+            this.buttonStart.Size = new System.Drawing.Size(119, 29);
             this.buttonStart.TabIndex = 5;
             this.buttonStart.Text = "Подключиться";
             this.buttonStart.UseVisualStyleBackColor = false;
@@ -258,9 +259,9 @@ namespace csbattleship
             // tableLayoutPanelUpper
             // 
             this.tableLayoutPanelUpper.ColumnCount = 3;
-            this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 15F));
-            this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 15F));
-            this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 70F));
+            this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
+            this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
+            this.tableLayoutPanelUpper.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60F));
             this.tableLayoutPanelUpper.Controls.Add(this.tableLayoutPanelChBoxes, 2, 0);
             this.tableLayoutPanelUpper.Controls.Add(this.labelHost, 0, 0);
             this.tableLayoutPanelUpper.Controls.Add(this.labelPort, 1, 0);
@@ -273,7 +274,6 @@ namespace csbattleship
             this.tableLayoutPanelUpper.RowCount = 2;
             this.tableLayoutPanelUpper.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanelUpper.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanelUpper.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanelUpper.Size = new System.Drawing.Size(991, 72);
             this.tableLayoutPanelUpper.TabIndex = 1;
             // 
@@ -287,22 +287,22 @@ namespace csbattleship
             this.tableLayoutPanelChBoxes.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanelChBoxes.Controls.Add(this.radioButtonClient, 0, 0);
             this.tableLayoutPanelChBoxes.Controls.Add(this.radioButtonServer, 1, 0);
-            this.tableLayoutPanelChBoxes.Location = new System.Drawing.Point(553, 3);
+            this.tableLayoutPanelChBoxes.Location = new System.Drawing.Point(613, 5);
             this.tableLayoutPanelChBoxes.Name = "tableLayoutPanelChBoxes";
             this.tableLayoutPanelChBoxes.RowCount = 1;
             this.tableLayoutPanelChBoxes.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanelChBoxes.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanelChBoxes.Size = new System.Drawing.Size(180, 29);
+            this.tableLayoutPanelChBoxes.Size = new System.Drawing.Size(160, 26);
             this.tableLayoutPanelChBoxes.TabIndex = 7;
             // 
             // radioButtonClient
             // 
             this.radioButtonClient.AutoSize = true;
             this.radioButtonClient.Checked = true;
-            this.radioButtonClient.Font = new System.Drawing.Font("Arial", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.radioButtonClient.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.radioButtonClient.Location = new System.Drawing.Point(3, 3);
             this.radioButtonClient.Name = "radioButtonClient";
-            this.radioButtonClient.Size = new System.Drawing.Size(82, 23);
+            this.radioButtonClient.Size = new System.Drawing.Size(72, 20);
             this.radioButtonClient.TabIndex = 2;
             this.radioButtonClient.TabStop = true;
             this.radioButtonClient.Text = "Клиент";
@@ -312,10 +312,10 @@ namespace csbattleship
             // radioButtonServer
             // 
             this.radioButtonServer.AutoSize = true;
-            this.radioButtonServer.Font = new System.Drawing.Font("Arial", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.radioButtonServer.Location = new System.Drawing.Point(93, 3);
+            this.radioButtonServer.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.radioButtonServer.Location = new System.Drawing.Point(83, 3);
             this.radioButtonServer.Name = "radioButtonServer";
-            this.radioButtonServer.Size = new System.Drawing.Size(84, 23);
+            this.radioButtonServer.Size = new System.Drawing.Size(74, 20);
             this.radioButtonServer.TabIndex = 3;
             this.radioButtonServer.Text = "Сервер";
             this.radioButtonServer.UseVisualStyleBackColor = true;
@@ -325,13 +325,13 @@ namespace csbattleship
             this.labelHost.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.labelHost.AutoSize = true;
             this.labelHost.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.labelHost.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.labelHost.Location = new System.Drawing.Point(51, 8);
+            this.labelHost.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.labelHost.Location = new System.Drawing.Point(80, 10);
             this.labelHost.Margin = new System.Windows.Forms.Padding(0);
             this.labelHost.Name = "labelHost";
-            this.labelHost.Size = new System.Drawing.Size(46, 20);
+            this.labelHost.Size = new System.Drawing.Size(37, 16);
             this.labelHost.TabIndex = 0;
-            this.labelHost.Text = "хост";
+            this.labelHost.Text = "Хост";
             this.labelHost.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // labelPort
@@ -339,27 +339,27 @@ namespace csbattleship
             this.labelPort.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.labelPort.AutoSize = true;
             this.labelPort.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.labelPort.Font = new System.Drawing.Font("Microsoft Sans Serif", 12.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.labelPort.Location = new System.Drawing.Point(197, 8);
+            this.labelPort.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.labelPort.Location = new System.Drawing.Point(277, 10);
             this.labelPort.Margin = new System.Windows.Forms.Padding(0);
             this.labelPort.Name = "labelPort";
-            this.labelPort.Size = new System.Drawing.Size(49, 20);
+            this.labelPort.Size = new System.Drawing.Size(40, 16);
             this.labelPort.TabIndex = 1;
-            this.labelPort.Text = "порт";
+            this.labelPort.Text = "Порт";
             this.labelPort.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // textBoxPort
             // 
             this.textBoxPort.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.textBoxPort.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxPort.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.textBoxPort.Location = new System.Drawing.Point(171, 42);
+            this.textBoxPort.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.textBoxPort.Location = new System.Drawing.Point(246, 43);
             this.textBoxPort.Margin = new System.Windows.Forms.Padding(0);
             this.textBoxPort.MaxLength = 5;
             this.textBoxPort.Name = "textBoxPort";
             this.textBoxPort.PlaceholderText = "7070";
             this.textBoxPort.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.textBoxPort.Size = new System.Drawing.Size(102, 24);
+            this.textBoxPort.Size = new System.Drawing.Size(102, 22);
             this.textBoxPort.TabIndex = 1;
             this.textBoxPort.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
@@ -367,14 +367,14 @@ namespace csbattleship
             // 
             this.textBoxHost.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.textBoxHost.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBoxHost.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.textBoxHost.Location = new System.Drawing.Point(21, 42);
+            this.textBoxHost.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.textBoxHost.Location = new System.Drawing.Point(46, 43);
             this.textBoxHost.Margin = new System.Windows.Forms.Padding(0);
             this.textBoxHost.MaxLength = 20;
             this.textBoxHost.Name = "textBoxHost";
             this.textBoxHost.PlaceholderText = "127.0.0.1";
             this.textBoxHost.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.textBoxHost.Size = new System.Drawing.Size(106, 24);
+            this.textBoxHost.Size = new System.Drawing.Size(106, 22);
             this.textBoxHost.TabIndex = 0;
             this.textBoxHost.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
@@ -382,32 +382,45 @@ namespace csbattleship
             // 
             this.tableLayoutPanelButtons.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.tableLayoutPanelButtons.AutoSize = true;
-            this.tableLayoutPanelButtons.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.tableLayoutPanelButtons.ColumnCount = 2;
-            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanelButtons.Controls.Add(this.buttonStart, 0, 0);
-            this.tableLayoutPanelButtons.Controls.Add(this.buttonClear, 1, 0);
-            this.tableLayoutPanelButtons.Location = new System.Drawing.Point(523, 39);
+            this.tableLayoutPanelButtons.ColumnCount = 3;
+            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 17.64706F));
+            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 41.17647F));
+            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 41.17647F));
+            this.tableLayoutPanelButtons.Controls.Add(this.buttonStart, 1, 0);
+            this.tableLayoutPanelButtons.Controls.Add(this.turnStatus, 0, 0);
+            this.tableLayoutPanelButtons.Controls.Add(this.buttonClear, 2, 0);
+            this.tableLayoutPanelButtons.Location = new System.Drawing.Point(548, 39);
             this.tableLayoutPanelButtons.Name = "tableLayoutPanelButtons";
             this.tableLayoutPanelButtons.RowCount = 1;
             this.tableLayoutPanelButtons.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelButtons.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanelButtons.Size = new System.Drawing.Size(240, 29);
+            this.tableLayoutPanelButtons.Size = new System.Drawing.Size(291, 29);
             this.tableLayoutPanelButtons.TabIndex = 6;
+            // 
+            // turnStatus
+            // 
+            this.turnStatus.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.turnStatus.AutoSize = true;
+            this.turnStatus.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.turnStatus.Font = new System.Drawing.Font("Arial", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.turnStatus.Image = global::csbattleship.Properties.Resources.green;
+            this.turnStatus.Location = new System.Drawing.Point(9, 6);
+            this.turnStatus.Name = "turnStatus";
+            this.turnStatus.Size = new System.Drawing.Size(32, 17);
+            this.turnStatus.TabIndex = 7;
+            this.turnStatus.Text = "      ";
+            this.turnStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.turnStatus.Visible = false;
             // 
             // buttonClear
             // 
             this.buttonClear.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.buttonClear.AutoSize = true;
-            this.buttonClear.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.buttonClear.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buttonClear.Font = new System.Drawing.Font("Arial", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.buttonClear.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.buttonClear.ForeColor = System.Drawing.Color.Black;
-            this.buttonClear.Location = new System.Drawing.Point(121, 0);
+            this.buttonClear.Location = new System.Drawing.Point(170, 0);
             this.buttonClear.Margin = new System.Windows.Forms.Padding(0);
             this.buttonClear.Name = "buttonClear";
-            this.buttonClear.Size = new System.Drawing.Size(118, 29);
+            this.buttonClear.Size = new System.Drawing.Size(120, 29);
             this.buttonClear.TabIndex = 6;
             this.buttonClear.Text = "    Очистить    ";
             this.buttonClear.UseVisualStyleBackColor = false;
@@ -468,6 +481,7 @@ namespace csbattleship
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelChBoxes;
         private System.Windows.Forms.RadioButton radioButtonClient;
         private System.Windows.Forms.RadioButton radioButtonServer;
+        private System.Windows.Forms.Label turnStatus;
     }
 }
 
