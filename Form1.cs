@@ -239,11 +239,11 @@ namespace csbattleship
                             {
                                 Button cell = rigthCellField[comboData[2].Substring(0, 2)];
                                 SetCellStatus(cell, 3);
-                                myTurn = !myTurn;
-                                ChangeTurnStatus();
                             }
                             else if (comboData[2][2..] == "miss")
                             {
+                                myTurn = !myTurn;
+                                ChangeTurnStatus();
                                 Button cell = rigthCellField[comboData[2].Substring(0, 2)];
                                 SetCellStatus(cell, 2);
                             }
@@ -384,9 +384,6 @@ namespace csbattleship
             Button cell = (Button)sender;
             if (gameStatus == 2 && cell.Text == "0" && myTurn)
             {
-                myTurn = !myTurn;
-                ChangeTurnStatus();
-
                 coordsToSend = $"{cell.Name[1..]}";
             }
         }
