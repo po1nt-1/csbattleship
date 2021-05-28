@@ -222,7 +222,7 @@ namespace csbattleship
 
                     if (comboData[2] != "")
                     {
-                        if (comboData[2] == "end of game")  // TODO: не работает
+                        if (comboData[2] == "end of game")
                         {
                             SendMessage("Победа");
                             SetGameStatus(1);
@@ -281,8 +281,8 @@ namespace csbattleship
 
                 if (aliveParts == 0)
                 {
-                    SetGameStatus(1);
                     SendMessage("Поражение");
+                    SetGameStatus(1);
                     endOfGame = true;
                 }
             }
@@ -315,6 +315,7 @@ namespace csbattleship
                     tableLayoutPanelRigth.Enabled = false;
                     tableLayoutPanelMessage.Enabled = false;
                     turnStatus.Visible = false;
+                    buttonSurrender.Visible = false;
                     buttonStart.Text = "Подключиться";
                     buttonStart.Enabled = true;
                     imReadyForBattle = false;
@@ -330,6 +331,7 @@ namespace csbattleship
                     tableLayoutPanelRigth.Enabled = false;
                     tableLayoutPanelMessage.Enabled = true;
                     turnStatus.Visible = true;
+                    buttonSurrender.Visible = true;
                     buttonStart.Text = "Готов";
                     imReadyForBattle = false;
                     enemyReadyForBattle = false;
@@ -343,6 +345,7 @@ namespace csbattleship
                     tableLayoutPanelLeft.Enabled = buttonClear.Enabled = buttonStart.Enabled = false;
                     tableLayoutPanelRigth.Enabled = true;
                     turnStatus.Visible = true;
+                    buttonSurrender.Visible = true;
                     endOfGame = false;
                     aliveParts = 20;
                     SendMessage("Бой начинается.");
@@ -586,6 +589,25 @@ namespace csbattleship
             else
             {
                 turnStatus.Image = Properties.Resources.red;
+            }
+
+        }
+
+        private void buttonSurrender_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show(
+            "Вы действительно хотите сдаться?",
+            "Сообщение",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Information,
+            MessageBoxDefaultButton.Button1,
+            MessageBoxOptions.DefaultDesktopOnly);
+
+            if (result == DialogResult.Yes)
+            {
+                SendMessage("Поражение");
+                SetGameStatus(1);
+                endOfGame = true;
             }
 
         }

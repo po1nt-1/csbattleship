@@ -50,6 +50,7 @@ namespace csbattleship
             this.tableLayoutPanelButtons = new System.Windows.Forms.TableLayoutPanel();
             this.turnStatus = new System.Windows.Forms.Label();
             this.buttonClear = new System.Windows.Forms.Button();
+            this.buttonSurrender = new System.Windows.Forms.Button();
             this.tableLayoutPanelLower.SuspendLayout();
             this.tableLayoutPanelChat.SuspendLayout();
             this.tableLayoutPanelMessage.SuspendLayout();
@@ -233,10 +234,10 @@ namespace csbattleship
             this.buttonStart.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.buttonStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.buttonStart.ForeColor = System.Drawing.Color.Black;
-            this.buttonStart.Location = new System.Drawing.Point(51, 0);
+            this.buttonStart.Location = new System.Drawing.Point(48, 1);
             this.buttonStart.Margin = new System.Windows.Forms.Padding(0);
             this.buttonStart.Name = "buttonStart";
-            this.buttonStart.Size = new System.Drawing.Size(119, 29);
+            this.buttonStart.Size = new System.Drawing.Size(112, 29);
             this.buttonStart.TabIndex = 5;
             this.buttonStart.Text = "Подключиться";
             this.buttonStart.UseVisualStyleBackColor = false;
@@ -382,18 +383,20 @@ namespace csbattleship
             // 
             this.tableLayoutPanelButtons.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.tableLayoutPanelButtons.AutoSize = true;
-            this.tableLayoutPanelButtons.ColumnCount = 3;
-            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 17.64706F));
-            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 41.17647F));
-            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 41.17647F));
+            this.tableLayoutPanelButtons.ColumnCount = 4;
+            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 15.30612F));
+            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 35.71429F));
+            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 35.71429F));
+            this.tableLayoutPanelButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 13.26531F));
             this.tableLayoutPanelButtons.Controls.Add(this.buttonStart, 1, 0);
             this.tableLayoutPanelButtons.Controls.Add(this.turnStatus, 0, 0);
             this.tableLayoutPanelButtons.Controls.Add(this.buttonClear, 2, 0);
-            this.tableLayoutPanelButtons.Location = new System.Drawing.Point(548, 39);
+            this.tableLayoutPanelButtons.Controls.Add(this.buttonSurrender, 3, 0);
+            this.tableLayoutPanelButtons.Location = new System.Drawing.Point(536, 39);
             this.tableLayoutPanelButtons.Name = "tableLayoutPanelButtons";
             this.tableLayoutPanelButtons.RowCount = 1;
             this.tableLayoutPanelButtons.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanelButtons.Size = new System.Drawing.Size(291, 29);
+            this.tableLayoutPanelButtons.Size = new System.Drawing.Size(314, 30);
             this.tableLayoutPanelButtons.TabIndex = 6;
             // 
             // turnStatus
@@ -403,7 +406,7 @@ namespace csbattleship
             this.turnStatus.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.turnStatus.Font = new System.Drawing.Font("Arial", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.turnStatus.Image = global::csbattleship.Properties.Resources.green;
-            this.turnStatus.Location = new System.Drawing.Point(9, 6);
+            this.turnStatus.Location = new System.Drawing.Point(8, 7);
             this.turnStatus.Name = "turnStatus";
             this.turnStatus.Size = new System.Drawing.Size(32, 17);
             this.turnStatus.TabIndex = 7;
@@ -417,14 +420,27 @@ namespace csbattleship
             this.buttonClear.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.buttonClear.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.buttonClear.ForeColor = System.Drawing.Color.Black;
-            this.buttonClear.Location = new System.Drawing.Point(170, 0);
+            this.buttonClear.Location = new System.Drawing.Point(160, 1);
             this.buttonClear.Margin = new System.Windows.Forms.Padding(0);
             this.buttonClear.Name = "buttonClear";
-            this.buttonClear.Size = new System.Drawing.Size(120, 29);
+            this.buttonClear.Size = new System.Drawing.Size(112, 29);
             this.buttonClear.TabIndex = 6;
             this.buttonClear.Text = "    Очистить    ";
             this.buttonClear.UseVisualStyleBackColor = false;
             this.buttonClear.Click += new System.EventHandler(this.ButtonClear_Click);
+            // 
+            // buttonSurrender
+            // 
+            this.buttonSurrender.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.buttonSurrender.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonSurrender.Image = global::csbattleship.Properties.Resources.white_flag;
+            this.buttonSurrender.Location = new System.Drawing.Point(280, 3);
+            this.buttonSurrender.Name = "buttonSurrender";
+            this.buttonSurrender.Size = new System.Drawing.Size(26, 26);
+            this.buttonSurrender.TabIndex = 8;
+            this.buttonSurrender.UseVisualStyleBackColor = true;
+            this.buttonSurrender.Visible = false;
+            this.buttonSurrender.Click += new System.EventHandler(this.buttonSurrender_Click);
             // 
             // Form1
             // 
@@ -482,6 +498,7 @@ namespace csbattleship
         private System.Windows.Forms.RadioButton radioButtonClient;
         private System.Windows.Forms.RadioButton radioButtonServer;
         private System.Windows.Forms.Label turnStatus;
+        private System.Windows.Forms.Button buttonSurrender;
     }
 }
 
