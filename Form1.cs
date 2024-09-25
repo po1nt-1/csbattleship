@@ -11,38 +11,38 @@ namespace csbattleship
     public partial class Form1 : Form
     {
         // Настройки цвета
-        readonly Color border_color = Color.FromArgb(14, 40, 120);
-        readonly Color sea_color = Color.FromArgb(15, 45, 135);
-        readonly Color ship_color = Color.FromArgb(20, 20, 20);
-        readonly Color miss_color = Color.FromArgb(40, 60, 130);
-        readonly Color hit_color = Color.FromArgb(105, 15, 0);
+        private readonly Color _borderColor = Color.FromArgb(14, 40, 120);
+        private readonly Color _seaColor = Color.FromArgb(15, 45, 135);
+        private readonly Color _shipColor = Color.FromArgb(20, 20, 20);
+        private readonly Color _missColor = Color.FromArgb(40, 60, 130);
+        private readonly Color _hitColor = Color.FromArgb(105, 15, 0);
 
-        bool isClient = true;
-        int gameStatus = 0;
+        private bool _isClient = true;
+        private int _gameStatus = 0;
 
         public string host = "127.0.0.1";
         public int port = 7070;
 
         // Ячейки кораблей
-        const int totalParts = 20;
-        int currentParts = 0;
-        int aliveParts = totalParts;
-        bool vertical;
-        bool horizontal;
+        private const int totalParts = 20;
+        private int currentParts = 0;
+        private int aliveParts = totalParts;
+        private bool vertical;
+        private bool horizontal;
 
-        bool myTurn;
-        bool endOfGame = false;        
+        private bool myTurn;
+        private bool endOfGame = false;
 
-        string coordsToSend = "";
+        private string coordsToSend = "";
         public string messageToSend = "";
-        string commandToSend = "";
+        private string commandToSend = "";
 
-        bool imReadyForBattle = false;
-        bool enemyReadyForBattle = false;
+        private bool _imReadyForBattle = false;
+        private bool _enemyReadyForBattle = false;
 
-        Dictionary<string, Button> leftCellField = new();
-        Dictionary<string, Button> rigthCellField = new();
-        Stack<Button> shipCoords = new(totalParts);
+        private Dictionary<string, Button> _leftCellField = new();
+        private Dictionary<string, Button> _rigthCellField = new();
+        private Stack<Button> _shipCoords = new(totalParts);
 
 
         public Form1()
@@ -54,8 +54,8 @@ namespace csbattleship
 
         void Form1_Load(object sender, EventArgs e)
         {
-            tableLayoutPanelLeft.BackColor = border_color;
-            tableLayoutPanelRigth.BackColor = border_color;
+            tableLayoutPanelLeft.BackColor = _borderColor;
+            tableLayoutPanelRigth.BackColor = _borderColor;
 
             for (int i = 0; i < 10; i++)
             {
@@ -86,8 +86,8 @@ namespace csbattleship
                     SetCellStatus(leftCell, 0);
                     SetCellStatus(rigthCell, 0);
 
-                    leftCellField.Add($"{i}{j}", leftCell);
-                    rigthCellField.Add($"{i}{j}", rigthCell);
+                    _leftCellField.Add($"{i}{j}", leftCell);
+                    _rigthCellField.Add($"{i}{j}", rigthCell);
 
                     tableLayoutPanelLeft.Controls.Add(leftCell, i, j);
                     tableLayoutPanelRigth.Controls.Add(rigthCell, i, j);
@@ -102,13 +102,13 @@ namespace csbattleship
 
         void StartGame(object sender, EventArgs e)
         {
-            if (gameStatus == 0 && CheckConnect())
+            if (_gameStatus == 0 && CheckConnect())
             {
                 textBoxHost.Enabled = textBoxPort.Enabled = false;
                 radioButtonClient.Enabled = radioButtonServer.Enabled = false;
                 buttonStart.Enabled = false;
 
-                if (isClient)
+                if (_isClient)
                 {
                     myTurn = false;
                     ChangeTurnStatus();
@@ -121,14 +121,14 @@ namespace csbattleship
                     NetworkClass.Server();
                 }
             }
-            else if (gameStatus == 1 && CheckBattle())
+            else if (_gameStatus == 1 && CheckBattle())
             {
-                imReadyForBattle = true;
+                _imReadyForBattle = true;
                 buttonStart.Enabled = false;
-                if (enemyReadyForBattle == false)
+                if (_enemyReadyForBattle == false)
                     SendMessage("Ожидание соперника.");
 
-                if (isClient)
+                if (_isClient)
                     commandToSend = "client ready";
                 else
                     commandToSend = "server ready";
@@ -230,32 +230,32 @@ namespace csbattleship
                         }
                         else if (comboData[2] == "client ready" || comboData[2] == "server ready")
                         {
-                            enemyReadyForBattle = true;
+                            _enemyReadyForBattle = true;
                             SendMessage("Соперник готов к бою.");
                         }
                         else
                         {
                             if (comboData[2][2..] == "hit")
                             {
-                                Button cell = rigthCellField[comboData[2].Substring(0, 2)];
+                                Button cell = _rigthCellField[comboData[2].Substring(0, 2)];
                                 SetCellStatus(cell, 3);
                             }
                             else if (comboData[2][2..] == "miss")
                             {
                                 myTurn = !myTurn;
                                 ChangeTurnStatus();
-                                Button cell = rigthCellField[comboData[2].Substring(0, 2)];
+                                Button cell = _rigthCellField[comboData[2].Substring(0, 2)];
                                 SetCellStatus(cell, 2);
                             }
                         }
                     }
 
-                    if (imReadyForBattle && enemyReadyForBattle)
+                    if (_imReadyForBattle && _enemyReadyForBattle)
                     {
                         commandToSend = "special code for start battle";
                         SetGameStatus(2);
 
-                        imReadyForBattle = enemyReadyForBattle = false;
+                        _imReadyForBattle = _enemyReadyForBattle = false;
                     }
                 };
 
@@ -272,7 +272,7 @@ namespace csbattleship
 
         void processEnemyAction(string coords)
         {
-            Button cell = leftCellField[coords];
+            Button cell = _leftCellField[coords];
             if (cell.Text == "1")
             {
                 SetCellStatus(cell, 3);
@@ -303,7 +303,7 @@ namespace csbattleship
                 {
                     ClearMap();
 
-                    gameStatus = 0;
+                    _gameStatus = 0;
                     if (textBoxHost.Text == textBoxHost.PlaceholderText)
                         textBoxHost.Text = "";
                     if (textBoxPort.Text == textBoxPort.PlaceholderText)
@@ -318,14 +318,14 @@ namespace csbattleship
                     buttonSurrender.Visible = false;
                     buttonStart.Text = "Подключиться";
                     buttonStart.Enabled = true;
-                    imReadyForBattle = false;
-                    enemyReadyForBattle = false;
+                    _imReadyForBattle = false;
+                    _enemyReadyForBattle = false;
                 }
                 else if (newGameStatus == 1)
                 {
                     ClearMap();
 
-                    gameStatus = 1;
+                    _gameStatus = 1;
                     buttonClear.Enabled = true;
                     tableLayoutPanelLeft.Enabled = true;
                     tableLayoutPanelRigth.Enabled = false;
@@ -333,15 +333,15 @@ namespace csbattleship
                     turnStatus.Visible = true;
                     buttonSurrender.Visible = true;
                     buttonStart.Text = "Готов";
-                    imReadyForBattle = false;
-                    enemyReadyForBattle = false;
+                    _imReadyForBattle = false;
+                    _enemyReadyForBattle = false;
                     buttonStart.Enabled = true;
                     aliveParts = 20;
                     SendMessage("Подготовка к бою.");
                 }
                 else if (newGameStatus == 2)
                 {
-                    gameStatus = 2;
+                    _gameStatus = 2;
                     tableLayoutPanelLeft.Enabled = buttonClear.Enabled = buttonStart.Enabled = false;
                     tableLayoutPanelRigth.Enabled = true;
                     turnStatus.Visible = true;
@@ -361,13 +361,13 @@ namespace csbattleship
 
         void LeftCellField_Click(object sender, EventArgs e)
         {
-            if (gameStatus == 1)
+            if (_gameStatus == 1)
             {
                 Button cell = (Button)sender;
 
-                if (cell.Text == "1" && cell == shipCoords.Peek())
+                if (cell.Text == "1" && cell == _shipCoords.Peek())
                 {
-                    shipCoords.Pop();
+                    _shipCoords.Pop();
                     SetCellStatus(cell, 0);
                     currentParts -= 1;
                 }
@@ -385,7 +385,7 @@ namespace csbattleship
         void RigthCellField_Click(object sender, EventArgs e)
         {
             Button cell = (Button)sender;
-            if (gameStatus == 2 && cell.Text == "0" && myTurn)
+            if (_gameStatus == 2 && cell.Text == "0" && myTurn)
             {
                 coordsToSend = $"{cell.Name[1..]}";
             }
@@ -408,7 +408,7 @@ namespace csbattleship
                     horizontal = false;
                     vertical = false;
 
-                    shipCoords.Push(cell);
+                    _shipCoords.Push(cell);
                     return true;
                 }
 
@@ -419,7 +419,7 @@ namespace csbattleship
                         horizontal = true;
                         vertical = false;
 
-                        shipCoords.Push(cell);
+                        _shipCoords.Push(cell);
                         return true;
                     }
                     else if (IsCellClear(cell, 0, -1) == false || IsCellClear(cell, 0, +1) == false)
@@ -427,7 +427,7 @@ namespace csbattleship
                         vertical = true;
                         horizontal = false;
 
-                        shipCoords.Push(cell);
+                        _shipCoords.Push(cell);
                         return true;
                     }
                 }
@@ -436,14 +436,14 @@ namespace csbattleship
                     ((horizontal && (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false)) ||
                         (vertical && (IsCellClear(cell, 0, +1) == false || IsCellClear(cell, 0, -1) == false))))
                 {
-                    shipCoords.Push(cell);
+                    _shipCoords.Push(cell);
                     return true;
                 }
 
                 else if ((currentParts == 11 || currentParts == 13 || currentParts == 15) &&
                     (IsCellClear(cell, -1, 0) == false || IsCellClear(cell, +1, 0) == false || IsCellClear(cell, 0, -1) == false || IsCellClear(cell, 0, +1) == false))
                 {
-                    shipCoords.Push(cell);
+                    _shipCoords.Push(cell);
                     return true;
                 }
             }
@@ -461,7 +461,7 @@ namespace csbattleship
                     {
                         string iter_coords = $"{Convert.ToInt32(cell.Name[1].ToString()) + i}{Convert.ToInt32(cell.Name[2].ToString()) + j}";
 
-                        if (leftCellField[iter_coords].Text == "1" && shipCoords.Peek().Name[1..] == iter_coords)
+                        if (_leftCellField[iter_coords].Text == "1" && _shipCoords.Peek().Name[1..] == iter_coords)
                         {
                             return true;
                         }
@@ -481,23 +481,23 @@ namespace csbattleship
             // Левое поле
             if (status == 0)    // пусто
             {
-                cell.BackColor = sea_color;
+                cell.BackColor = _seaColor;
                 cell.Text = "0";
             }
             else if (status == 1)   // целый
             {
-                cell.BackColor = ship_color;
+                cell.BackColor = _shipColor;
                 cell.Text = "1";
             }
             // Правое поле
             else if (status == 2)   // промах
             {
-                cell.BackColor = miss_color;
+                cell.BackColor = _missColor;
                 cell.Text = "2";
             }
             else if (status == 3)   // попадание
             {
-                cell.BackColor = hit_color;
+                cell.BackColor = _hitColor;
                 cell.Text = "3";
             }
         }
@@ -506,7 +506,7 @@ namespace csbattleship
         {
             try
             {
-                if (leftCellField[$"{Convert.ToInt32(cell.Name[1].ToString()) + dx}{Convert.ToInt32(cell.Name[2].ToString()) + dy}"].Text == "0")
+                if (_leftCellField[$"{Convert.ToInt32(cell.Name[1].ToString()) + dx}{Convert.ToInt32(cell.Name[2].ToString()) + dy}"].Text == "0")
                 {
                     return true;
                 }
@@ -549,7 +549,7 @@ namespace csbattleship
 
         void ButtonClear_Click(object sender, EventArgs e)
         {
-            if (gameStatus == 1)
+            if (_gameStatus == 1)
             {
                 ClearMap();
             }
@@ -568,13 +568,13 @@ namespace csbattleship
             }
 
             currentParts = 0;
-            shipCoords.Clear();
+            _shipCoords.Clear();
         }
 
         void radioButtonClient_CheckedChanged(object sender, EventArgs e)
         {
-            isClient = !isClient;
-            if (isClient)
+            _isClient = !_isClient;
+            if (_isClient)
                 textBoxHost.PlaceholderText = "127.0.0.1";
             else
                 textBoxHost.PlaceholderText = "0.0.0.0";
