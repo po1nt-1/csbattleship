@@ -25,27 +25,49 @@ namespace csbattleship
             token = cancelTokenSource.Token;
         }
 
-        void Worker(string socketType)
+
+        public static void Server()
         {
-            try
+            new Task(() =>
             {
-                ConnectionLoop(socketType);
-            }
-            catch (Exception ex)
-            {
-                Program.f.SetGameStatus(0);
-                Program.f.SendMessage(ex.Message);
+                try
+                {
+                    listener = new TcpListener(IPAddress.Parse(Program.f.host), Program.f.port);
+                    listener.Start();
+                    TcpClient client = listener.AcceptTcpClient();
+                    NetworkClass clientObject = new(client);
+                    clientObject.Worker("server");
+                }
+                catch (Exception ex)
+                {
+                    Program.f.SendMessage(ex.Message);
+                    Program.f.SetGameStatus(0);
 
-                if (stream != null)
-                    stream.Close();
-                if (client != null)
-                    client.Close();
-
-                cancelTokenSource.Cancel();
-            }
+                    if (listener != null)
+                        listener.Stop();
+                }
+            }).Start();
         }
 
-        void ConnectionLoop(string socketType)
+        public static void Client()
+        {
+            new Task(() =>
+            {
+                try
+                {
+                    TcpClient client = new(Program.f.host, Program.f.port);
+                    NetworkClass clientObject = new(client);
+                    clientObject.Worker("client");
+                }
+                catch (Exception ex)
+                {
+                    Program.f.SendMessage(ex.Message);
+                    Program.f.SetGameStatus(0);
+                }
+            }).Start();
+        }
+
+        private void ConnectionLoop(string socketType)
         {
             try
             {
@@ -81,8 +103,7 @@ namespace csbattleship
                 throw new Exception("Соединение не установлено");
             }
         }
-        
-        void ActionLoop()
+        private void ActionLoop()
         {
             try
             {
@@ -135,46 +156,24 @@ namespace csbattleship
             }
         }
 
-        public static void Server()
+        private void Worker(string socketType)
         {
-            new Task(() =>
+            try
             {
-                try
-                {
-                    listener = new TcpListener(IPAddress.Parse(Program.f.host), Program.f.port);
-                    listener.Start();
-                    TcpClient client = listener.AcceptTcpClient();
-                    NetworkClass clientObject = new(client);
-                    clientObject.Worker("server");
-                }
-                catch (Exception ex)
-                {
-                    Program.f.SendMessage(ex.Message);
-                    Program.f.SetGameStatus(0);
-
-                    if (listener != null)
-                        listener.Stop();
-                }
-            }).Start();
-        }
-
-        public static void Client()
-        {
-            new Task(() =>
+                ConnectionLoop(socketType);
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    TcpClient client = new(Program.f.host, Program.f.port);
-                    NetworkClass clientObject = new(client);
-                    clientObject.Worker("client");
-                }
-                catch (Exception ex)
-                {
-                    Program.f.SendMessage(ex.Message);
-                    Program.f.SetGameStatus(0);
-                }
-            }).Start();
-        }
+                Program.f.SetGameStatus(0);
+                Program.f.SendMessage(ex.Message);
 
+                if (stream != null)
+                    stream.Close();
+                if (client != null)
+                    client.Close();
+
+                cancelTokenSource.Cancel();
+            }
+        }
     }
 }

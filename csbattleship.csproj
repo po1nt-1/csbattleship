@@ -2,12 +2,20 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>9.0</LangVersion>
+    <StartupObject>csbattleship.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="NetworkClass.cs~RFa0f80fa.TMP" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
   </ItemGroup>
 
   <ItemGroup>
